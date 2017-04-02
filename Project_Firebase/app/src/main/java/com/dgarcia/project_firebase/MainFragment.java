@@ -28,15 +28,14 @@ import com.google.firebase.database.ValueEventListener;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.security.spec.ECField;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 public class MainFragment extends Fragment{
 
     private Button mPostButton;
+    private Button mGetButton;
     private TestObject testObject;
     private DatabaseReference fireBaseRef;
     private DatabaseReference connectedRef;
@@ -54,6 +53,7 @@ public class MainFragment extends Fragment{
     private List<String> mStringList = new ArrayList<>();
     private RecyclerView mRecyclerView;
     private StringAdapter mStringAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
 
     //Volley variables
     RequestQueue mRequestQueue;
@@ -62,7 +62,6 @@ public class MainFragment extends Fragment{
     StringRequest mStringRequest;
     private final int STRING = 0, JSON = 1, TEST = 2, JSONARRAY = 3;
     private static int intTAGS = 1;
-
 
     //Date format variables
     final String dfString = "MM/dd/yy  hh:mm:ss a";  // date format string
@@ -78,36 +77,13 @@ public class MainFragment extends Fragment{
 
         view = inflater.inflate(R.layout.fragment_main, container, false);
 
-        //RECYCLER VIEW setup
-        mRecyclerView = (RecyclerView)view.findViewById(R.id.RecyclerView_outputWindow);    //Get handle on recycler view
-        mStringAdapter = new StringAdapter(mStringList);    //add string list to custom adapter
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(view.getContext()); // get new layout manager
-        mRecyclerView.setLayoutManager(mLayoutManager);
-        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
-        mRecyclerView.setAdapter(mStringAdapter);
-        mRecyclerView.addItemDecoration(new DividerItemDecoration(view.getContext(), DividerItemDecoration.VERTICAL));
-        startRecyclerListener();
+        setUpRecyclerListener();
+        setUpButtons();
+        hideButtons(true);
 
-        //Volley
-        mRequestQueue = VolleySingleton.getInstance(view.getContext().getApplicationContext()).getRequestQueue(); //Get request queue
-        volleyGetString("https://regis-project.firebaseio.com/regis-project/"); // test connection
-//        volleyGetString("https://regis-project.firebaseio.com/MyObjects.json");
-        volleyGetJson("https://regis-project.firebaseio.com/MyObjects.json");
+        mRequestQueue = VolleySingleton.getInstance(view.getContext().getApplicationContext()).getRequestQueue(); //Get volley request queue
+        volleyCheckConnection("https://regis-project.firebaseio.com/regis-project/"); // test connection, if good unhide buttons
 
-
-        //Set up POST button
-        mPostButton = (Button)view.findViewById(R.id.button_POST);
-        mPostButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                count++;
-                testObject = new TestObject(count, dateFormat.format(dfString, new Date()).toString()); //Create new object
-
-                //fireBaseRef.child("Object " + Integer.toString(testObject.getId())).setValue(testObject); //Add Object via Firebase Android API
-
-
-            }// END OF onClick()
-        }); // END OF setonClickListener()
 
 
         return view;
@@ -242,8 +218,64 @@ public class MainFragment extends Fragment{
     //https://developer.android.com/samples/RecyclerView/index.html
     //https://developer.android.com/training/material/lists-cards.html
 
+    //TODO - METHODS
 
-    private void startRecyclerListener(){
+    /** hideButtons()
+     * Sets button visibility
+     * @param hide
+     */
+    private void hideButtons(Boolean hide){
+        if(hide) {
+            mPostButton.setVisibility(View.INVISIBLE);
+            mGetButton.setVisibility(View.INVISIBLE);
+        }
+        else {
+            mPostButton.setVisibility(View.VISIBLE);
+            mGetButton.setVisibility(View.VISIBLE);
+        }
+    }
+
+
+    /** setUpButtons()
+     * Sets up buttons and listeners
+     */
+    private void setUpButtons(){
+        //Set up POST button
+        mPostButton = (Button)view.findViewById(R.id.button_POST);
+        mPostButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                count++;
+                testObject = new TestObject(count, dateFormat.format(dfString, new Date()).toString()); //Create new object
+                //fireBaseRef.child("Object " + Integer.toString(testObject.getId())).setValue(testObject); //Add Object via Firebase Android API
+
+
+            }// END OF onClick()
+        }); // END OF setonClickListener()
+
+        //Set up GET button
+        mGetButton = (Button)view.findViewById(R.id.button_GET);
+        mGetButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                volleyGetJson("https://regis-project.firebaseio.com/MyObjects.json"); // Get object json string
+            }
+        });
+    }
+
+
+    /** setUpRecyclerListener()
+     * Sets up and starts Recycler Listener
+     */
+    private void setUpRecyclerListener(){
+        //RECYCLER VIEW setup
+        mRecyclerView = (RecyclerView)view.findViewById(R.id.RecyclerView_outputWindow);    //Get handle on recycler view
+        mStringAdapter = new StringAdapter(mStringList);    //add string list to custom adapter
+        mLayoutManager = new LinearLayoutManager(view.getContext()); // get new layout manager
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        mRecyclerView.setAdapter(mStringAdapter);
+        mRecyclerView.addItemDecoration(new DividerItemDecoration(view.getContext(), DividerItemDecoration.VERTICAL));
 
         mRecyclerView.addOnItemTouchListener(
                 new RecyclerTouchListener(view.getContext(), new RecyclerTouchListener.OnItemClickListener() {
@@ -255,23 +287,32 @@ public class MainFragment extends Fragment{
         );
     }
 
+
+    /** updateRecyclerView()
+     * Simple update to Recycler view
+     * @param s
+     */
     private void updateRecyclerView(String s){
         mStringList.add(s);
         mStringAdapter.notifyDataSetChanged();
     }
 
-    // VOLLEY GET
-    public void volleyGetString(String url){
 
-        updateRecyclerView(OUT + "Sending GET STRING request...");
+    /** volleyCheckConnection()
+     * Checks the connection by seeing if we get a string web page response
+     * @param url
+     */
+    public void volleyCheckConnection(String url){
+
+        updateRecyclerView(OUT + "Checking connection to:\n" + "    " + url);
 
         // Request a string response from url
         final StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        if(response.contains("DOCTYPE")) updateRecyclerView(IN + "Connection ok!");
-                        else jsonParser(response);
+                        updateRecyclerView(IN + "Connection good!");
+                        hideButtons(false);
                     }
                 }, new Response.ErrorListener() {
             @Override
@@ -280,8 +321,13 @@ public class MainFragment extends Fragment{
             }
         });
         mRequestQueue.add(stringRequest);
-    }// END OF volleyGET()
+    }// END OF volleyCheckConnection()
 
+
+    /** volleyGetJson()
+     * GETs a json string from db
+     * @param url
+     */
     public void volleyGetJson(String url){
 
         updateRecyclerView(OUT + "Sending GET JSON OBJECT request...");
@@ -300,40 +346,40 @@ public class MainFragment extends Fragment{
             }
         });
         mRequestQueue.add(stringRequest);
+    } //END OF volleyGetJson()
+
+
+    /** volleyPost()
+     * Posts a test object
+     * @param url
+     */
+    public void volleyPost(String url){
+        updateRecyclerView(OUT + "Sending POST request...");
+
     }
 
-    public void jsonParser(JSONObject jsonObject) {
+    /** jsonParser()
+     * Parses a json string to UI
+     * @param jsonStr
+     */
+    public void jsonParser(JSONObject jsonStr) {
 
-        Iterator<String> iterator = jsonObject.keys();
-
-        while (iterator.hasNext()) {
-            String key = iterator.next();
-            try {
-                Object object = jsonObject.get(key);
-                String s = jsonObject.names().toString();
-                updateRecyclerView(s);
-
-            }catch (Exception e){
-                updateRecyclerView("Exception:" + e.getMessage());
-            }
-        }
-    }
-
-    public void jsonParser(String jsonString) {
         try {
+            JSONArray jsonArray = new JSONArray(jsonStr.names().toString()); // Get all Object names
+            int length = jsonStr.length();
 
-            JSONArray jsonArray = new JSONArray(jsonString);
-            final int length = jsonArray.length();
-
-            for (int i = 0; i < length; i++) {
-                JSONObject object = jsonArray.getJSONObject(i);
-                updateRecyclerView(IN + object.getString("id") + " " + object.getString("date"));
-                mStringAdapter.notifyDataSetChanged();
+            for(int i =0; i < length; i++){
+                String jsonObjName = jsonArray.getString(i); // get first object name
+                JSONObject jsonObject = jsonStr.getJSONObject(jsonObjName); //get jsonObject from jsonStr by name
+                TestObject testObject = new TestObject(Integer.parseInt(jsonObject.getString("id")), jsonObject.getString("date"));
+                updateRecyclerView(IN + jsonObjName +  ", ID: " + testObject.getId() + "\n     DATE: " + testObject.getDate());
             }
         }catch (Exception e){
             updateRecyclerView("Exception:" + e.getMessage());
         }
     }
+
+
 }// END OF MainFragment()
 
 

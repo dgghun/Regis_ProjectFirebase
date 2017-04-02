@@ -9,22 +9,44 @@
         android:text="@string/main_title_label"
         style="?android:listSeparatorTextViewStyle"
         />
-    <Button android:id="@+id/button_POST"
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/post_button"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginTop="16dp"
-        android:backgroundTint="@android:color/holo_blue_bright"
-        />
+        android:orientation="horizontal"
+        >
+
+        <Button
+            android:id="@+id/button_POST"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="0dp"
+            android:layout_marginLeft="16dp"
+            android:backgroundTint="@android:color/holo_blue_bright"
+            android:text="@string/post_button"
+            android:layout_weight="1"
+            />
+        <Button
+            android:id="@+id/button_GET"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="0dp"
+            android:layout_marginRight="16dp"
+            android:backgroundTint="@android:color/holo_blue_bright"
+            android:layout_toRightOf="@id/button_POST"
+            android:text="@string/get_button"
+            android:layout_weight="1"
+            />
+    </LinearLayout>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/RecyclerView_outputWindow"
         android:scrollbars="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="16dp"
         />
 </LinearLayout>
 

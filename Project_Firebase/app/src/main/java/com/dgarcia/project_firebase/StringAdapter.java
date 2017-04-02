@@ -39,9 +39,16 @@ public class StringAdapter extends RecyclerView.Adapter<StringAdapter.MyViewHold
         String s = stringList.get(position);
 
         //Change text color depending on input
-        if(s.startsWith("->")) holder.mTextView.setTextColor(Color.rgb(0,255,55)); //Green
-        else if(s.startsWith("<-") )holder.mTextView.setTextColor(Color.rgb(0, 229, 255)); //blue
-        else holder.mTextView.setTextColor(Color.WHITE);
+        if(s.startsWith("->")) {
+            holder.mTextView.setTextColor(Color.rgb(0,255,55)); //Green
+        }
+        else if(s.startsWith("<-")){
+            if(s.contains("ERROR")) holder.mTextView.setTextColor(Color.rgb(255,0,0)); //Red
+            else holder.mTextView.setTextColor(Color.rgb(0, 229, 255)); //blue
+        }
+        else {
+            holder.mTextView.setTextColor(Color.WHITE);
+        }
         holder.mTextView.setText(s);
     }
 

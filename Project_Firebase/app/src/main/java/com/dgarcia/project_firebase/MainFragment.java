@@ -16,15 +16,22 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.dgarcia.project_firebase.model.TestObject;
+import com.dgarcia.project_firebase.services.VolleySingleton;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.security.spec.ECField;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 public class MainFragment extends Fragment{
@@ -39,8 +46,9 @@ public class MainFragment extends Fragment{
     private static int count = 0;
     private View view;
     private final String ROOT = "TestObjects", ROOT2 = "MyObjects";
-    private final String IN = "<-";
-    private final String OUT = "->";
+    private final String IN = "<- ";
+    private final String OUT = "-> ";
+    private final String ERROR_IN = "<- ERROR ";
 
     //Recycler View variables
     private List<String> mStringList = new ArrayList<>();
@@ -48,8 +56,12 @@ public class MainFragment extends Fragment{
     private StringAdapter mStringAdapter;
 
     //Volley variables
-    RequestQueue queue;
-    StringRequest stringRequest;
+    RequestQueue mRequestQueue;
+    JsonObjectRequest mJsonObjectRequest;
+    JsonArrayRequest mJsonArrayRequest;
+    StringRequest mStringRequest;
+    private final int STRING = 0, JSON = 1, TEST = 2, JSONARRAY = 3;
+    private static int intTAGS = 1;
 
 
     //Date format variables
@@ -75,9 +87,12 @@ public class MainFragment extends Fragment{
         mRecyclerView.setAdapter(mStringAdapter);
         mRecyclerView.addItemDecoration(new DividerItemDecoration(view.getContext(), DividerItemDecoration.VERTICAL));
         startRecyclerListener();
-        setUpVolleyRequestQueue();
-        addSomeStrings();
 
+        //Volley
+        mRequestQueue = VolleySingleton.getInstance(view.getContext().getApplicationContext()).getRequestQueue(); //Get request queue
+        volleyGetString("https://regis-project.firebaseio.com/regis-project/"); // test connection
+//        volleyGetString("https://regis-project.firebaseio.com/MyObjects.json");
+        volleyGetJson("https://regis-project.firebaseio.com/MyObjects.json");
 
 
         //Set up POST button
@@ -99,8 +114,7 @@ public class MainFragment extends Fragment{
     } // END OF onCreate()
 
 
-    /*TODO - DON'T USE BELOW YET. Android Firebase API stuff*/
-
+    // TODO - DON'T USE BELOW YET. Android Firebase API stuff
 //    @Override
 //    public void onStart(){
 //        super.onStart();
@@ -241,45 +255,85 @@ public class MainFragment extends Fragment{
         );
     }
 
-    private void addSomeStrings(){
-        int temp;
-        String str;
-        mStringList.add("Staring up");
-//        for(int i = 0; i < 20; i++){
-//            if(i % 2 == 0) str = IN;
-//            else str = OUT;
-//            mStringList.add(str + " String # " + Integer.toString(i+1));
-//        }
-        mStringList.add("Ready");
+    private void updateRecyclerView(String s){
+        mStringList.add(s);
         mStringAdapter.notifyDataSetChanged();
     }
 
-    private void setUpVolleyRequestQueue(){
-        //Instantiate requestQueue
-        final String urlFB = "https://regis-project.firebaseio.com/";
-        queue = Volley.newRequestQueue(view.getContext());
+    // VOLLEY GET
+    public void volleyGetString(String url){
+
+        updateRecyclerView(OUT + "Sending GET STRING request...");
 
         // Request a string response from url
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, urlFB,
+        final StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        // Display the first xx characters of the response string.
-                        mStringList.add(response.substring(0, 700));
-                        mStringAdapter.notifyDataSetChanged();
+                        if(response.contains("DOCTYPE")) updateRecyclerView(IN + "Connection ok!");
+                        else jsonParser(response);
                     }
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                mStringList.add("ERROR" + error.toString().substring(0, 30));
-                mStringAdapter.notifyDataSetChanged();
+                updateRecyclerView(ERROR_IN + error.toString());
             }
         });
-        // add request to the request queue
-        queue.add(stringRequest);
+        mRequestQueue.add(stringRequest);
+    }// END OF volleyGET()
+
+    public void volleyGetJson(String url){
+
+        updateRecyclerView(OUT + "Sending GET JSON OBJECT request...");
+
+        // Request a string response from url
+        final JsonObjectRequest stringRequest = new JsonObjectRequest(Request.Method.GET, url, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        jsonParser(response);
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                updateRecyclerView(ERROR_IN + error.toString());
+            }
+        });
+        mRequestQueue.add(stringRequest);
     }
 
+    public void jsonParser(JSONObject jsonObject) {
 
+        Iterator<String> iterator = jsonObject.keys();
+
+        while (iterator.hasNext()) {
+            String key = iterator.next();
+            try {
+                Object object = jsonObject.get(key);
+                String s = jsonObject.names().toString();
+                updateRecyclerView(s);
+
+            }catch (Exception e){
+                updateRecyclerView("Exception:" + e.getMessage());
+            }
+        }
+    }
+
+    public void jsonParser(String jsonString) {
+        try {
+
+            JSONArray jsonArray = new JSONArray(jsonString);
+            final int length = jsonArray.length();
+
+            for (int i = 0; i < length; i++) {
+                JSONObject object = jsonArray.getJSONObject(i);
+                updateRecyclerView(IN + object.getString("id") + " " + object.getString("date"));
+                mStringAdapter.notifyDataSetChanged();
+            }
+        }catch (Exception e){
+            updateRecyclerView("Exception:" + e.getMessage());
+        }
+    }
 }// END OF MainFragment()
 
 

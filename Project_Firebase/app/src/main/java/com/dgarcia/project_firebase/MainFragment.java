@@ -5,13 +5,16 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.*;
 import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.RecyclerView.LayoutManager;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -60,6 +63,7 @@ public class MainFragment extends Fragment{
     JsonObjectRequest mJsonObjectRequest;
     JsonArrayRequest mJsonArrayRequest;
     StringRequest mStringRequest;
+    private final String urlForMethods = "https://regis-project.firebaseio.com/Volley/TestObjects.json";
     private final int STRING = 0, JSON = 1, TEST = 2, JSONARRAY = 3;
     private static int intTAGS = 1;
 
@@ -83,15 +87,222 @@ public class MainFragment extends Fragment{
 
         mRequestQueue = VolleySingleton.getInstance(view.getContext().getApplicationContext()).getRequestQueue(); //Get volley request queue
         volleyCheckConnection("https://regis-project.firebaseio.com/regis-project/"); // test connection, if good unhide buttons
-
-
+        delete(urlForMethods);
 
         return view;
     } // END OF onCreate()
 
 
-    // TODO - DON'T USE BELOW YET. Android Firebase API stuff
-//    @Override
+    //******************
+    //*** METHODS ******
+    //******************
+
+    /** hideButtons()
+     * Sets button visibility
+     * @param hide
+     */
+    private void hideButtons(Boolean hide){
+        if(hide) {
+            mPostButton.setVisibility(View.INVISIBLE);
+            mGetButton.setVisibility(View.INVISIBLE);
+        }
+        else {
+            mPostButton.setVisibility(View.VISIBLE);
+            mGetButton.setVisibility(View.VISIBLE);
+        }
+    }
+
+
+    /** setUpButtons()
+     * Sets up buttons and listeners
+     */
+    private void setUpButtons(){
+        //Set up POST button
+        mPostButton = (Button)view.findViewById(R.id.button_POST);
+        mPostButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                count++;
+                testObject = new TestObject(count, dateFormat.format(dfString, new Date()).toString()); //Create new object
+                volleyPost(urlForMethods, testObject);
+                //fireBaseRef.child("Object " + Integer.toString(testObject.getId())).setValue(testObject); //Add Object via Firebase Android API
+
+            }// END OF onClick()
+        }); // END OF setonClickListener()
+
+        //Set up GET button
+        mGetButton = (Button)view.findViewById(R.id.button_GET);
+        mGetButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                volleyGetJson(urlForMethods); // Get object json string
+            }
+        });
+    }
+
+
+    /** setUpRecyclerListener()
+     * Sets up and starts Recycler Listener
+     */
+    private void setUpRecyclerListener(){
+        //RECYCLER VIEW setup
+        mRecyclerView = (RecyclerView)view.findViewById(R.id.RecyclerView_outputWindow);    //Get handle on recycler view
+        mStringAdapter = new StringAdapter(mStringList);    //add string list to custom adapter
+        mLayoutManager = new LinearLayoutManager(view.getContext()); // get new layout manager
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        mRecyclerView.setAdapter(mStringAdapter);
+        mRecyclerView.addItemDecoration(new DividerItemDecoration(view.getContext(), DividerItemDecoration.VERTICAL));
+
+        mRecyclerView.addOnItemTouchListener(
+                new RecyclerTouchListener(view.getContext(), new RecyclerTouchListener.OnItemClickListener() {
+                    @Override public void onItemClick(View view, int position) {
+                        String s = mStringList.get(position);
+                        Toast.makeText(view.getContext(),"Clicked " + s, Toast.LENGTH_SHORT).show();
+                    }
+                })
+        );
+    }
+
+
+    /** updateRecyclerView()
+     * Simple update to Recycler view
+     * @param s
+     */
+    private void updateRecyclerView(String s){
+        mStringList.add(s);
+        mStringAdapter.notifyDataSetChanged();
+        mRecyclerView.smoothScrollToPosition(mStringAdapter.getItemCount() - 1);
+    }
+
+
+    /** volleyCheckConnection()
+     * Checks the connection by seeing if we get a string web page response
+     * @param url
+     */
+    public void volleyCheckConnection(String url){
+
+        updateRecyclerView(OUT + "Checking connection to:\n" + "    " + url);
+
+        // Request a string response from url
+        final StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        updateRecyclerView(IN + "Connection good!");
+                        hideButtons(false);
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                updateRecyclerView(ERROR_IN + error.toString());
+            }
+        });
+        mRequestQueue.add(stringRequest);
+    }// END OF volleyCheckConnection()
+
+
+    /** volleyGetJson()
+     * GETs a json string from db
+     * @param url
+     */
+    public void volleyGetJson(String url){
+
+        updateRecyclerView(OUT + "Sending GET JSON OBJECT request...");
+
+        // Request a string response from url
+        final JsonObjectRequest stringRequest = new JsonObjectRequest(Request.Method.GET, url, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        jsonParser(response);
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                updateRecyclerView(ERROR_IN + error.toString());
+            }
+        });
+        mRequestQueue.add(stringRequest);
+
+    } //END OF volleyGetJson()
+
+    /** jsonParser()
+     * Parses a json string to UI
+     * @param jsonStr
+     */
+    public void jsonParser(JSONObject jsonStr) {
+
+        try {
+            JSONArray jsonArray = new JSONArray(jsonStr.names().toString()); // Get all Object names
+            int length = jsonStr.length();
+
+            for(int i =0; i < length; i++){
+                String jsonObjName = jsonArray.getString(i); // get first object name
+                JSONObject jsonObject = jsonStr.getJSONObject(jsonObjName); //get jsonObject from jsonStr by name
+                TestObject testObject = new TestObject(Integer.parseInt(jsonObject.getString("id")), jsonObject.getString("date"));
+                updateRecyclerView(IN + "(GET) " + jsonObjName +  ", ID: " + testObject.getId() + "\n     DATE: " + testObject.getDate());
+            }
+        }catch (Exception e){
+            updateRecyclerView("Exception:" + e.getMessage());
+        }
+    }
+
+    /** volleyPost()
+     * Posts a test object
+     * @param url
+     */
+    public void volleyPost(String url, final TestObject testObject){
+        updateRecyclerView(OUT + "Sending POST request...");
+
+        try{
+            final JSONObject jsonAttributes = new JSONObject();   // holds data and id
+            jsonAttributes.put("id", testObject.getId());
+            jsonAttributes.put("date", testObject.getDate());
+
+            //Send get request
+            final JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, jsonAttributes,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            updateRecyclerView(IN + "(POST) ID:"+ testObject.getId() + ", DATE:" + testObject.getDate() +" successful!");
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    updateRecyclerView(ERROR_IN + error);
+                }
+            });
+
+            mRequestQueue.add(request);
+        }catch (Exception e){
+            updateRecyclerView("Exception:" + e.getMessage());
+        }
+    }
+
+    /** delete()
+     *
+     * @param url
+     */
+    public void delete(String url){
+        final JsonObjectRequest request = new JsonObjectRequest(Request.Method.DELETE, url, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.e("DELETE", "Delete complete");
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e("ERROR: ", error.toString());
+            }});
+        mRequestQueue.add(request);
+    }
+
+
+
+/* TODO - DON'T USE BELOW YET. Android Firebase API stuff */
+    //    @Override
 //    public void onStart(){
 //        super.onStart();
 //
@@ -213,172 +424,6 @@ public class MainFragment extends Fragment{
 //
 ////        fireBaseRef.getRef().removeValue(); // remove values from db
 //    } // END OF onStop()
-
-    //TODO - Finish recycler view adapter
-    //https://developer.android.com/samples/RecyclerView/index.html
-    //https://developer.android.com/training/material/lists-cards.html
-
-    //TODO - METHODS
-
-    /** hideButtons()
-     * Sets button visibility
-     * @param hide
-     */
-    private void hideButtons(Boolean hide){
-        if(hide) {
-            mPostButton.setVisibility(View.INVISIBLE);
-            mGetButton.setVisibility(View.INVISIBLE);
-        }
-        else {
-            mPostButton.setVisibility(View.VISIBLE);
-            mGetButton.setVisibility(View.VISIBLE);
-        }
-    }
-
-
-    /** setUpButtons()
-     * Sets up buttons and listeners
-     */
-    private void setUpButtons(){
-        //Set up POST button
-        mPostButton = (Button)view.findViewById(R.id.button_POST);
-        mPostButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                count++;
-                testObject = new TestObject(count, dateFormat.format(dfString, new Date()).toString()); //Create new object
-                //fireBaseRef.child("Object " + Integer.toString(testObject.getId())).setValue(testObject); //Add Object via Firebase Android API
-
-
-            }// END OF onClick()
-        }); // END OF setonClickListener()
-
-        //Set up GET button
-        mGetButton = (Button)view.findViewById(R.id.button_GET);
-        mGetButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                volleyGetJson("https://regis-project.firebaseio.com/MyObjects.json"); // Get object json string
-            }
-        });
-    }
-
-
-    /** setUpRecyclerListener()
-     * Sets up and starts Recycler Listener
-     */
-    private void setUpRecyclerListener(){
-        //RECYCLER VIEW setup
-        mRecyclerView = (RecyclerView)view.findViewById(R.id.RecyclerView_outputWindow);    //Get handle on recycler view
-        mStringAdapter = new StringAdapter(mStringList);    //add string list to custom adapter
-        mLayoutManager = new LinearLayoutManager(view.getContext()); // get new layout manager
-        mRecyclerView.setLayoutManager(mLayoutManager);
-        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
-        mRecyclerView.setAdapter(mStringAdapter);
-        mRecyclerView.addItemDecoration(new DividerItemDecoration(view.getContext(), DividerItemDecoration.VERTICAL));
-
-        mRecyclerView.addOnItemTouchListener(
-                new RecyclerTouchListener(view.getContext(), new RecyclerTouchListener.OnItemClickListener() {
-                    @Override public void onItemClick(View view, int position) {
-                        String s = mStringList.get(position);
-                        Toast.makeText(view.getContext(),"Clicked " + s, Toast.LENGTH_SHORT).show();
-                    }
-                })
-        );
-    }
-
-
-    /** updateRecyclerView()
-     * Simple update to Recycler view
-     * @param s
-     */
-    private void updateRecyclerView(String s){
-        mStringList.add(s);
-        mStringAdapter.notifyDataSetChanged();
-    }
-
-
-    /** volleyCheckConnection()
-     * Checks the connection by seeing if we get a string web page response
-     * @param url
-     */
-    public void volleyCheckConnection(String url){
-
-        updateRecyclerView(OUT + "Checking connection to:\n" + "    " + url);
-
-        // Request a string response from url
-        final StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        updateRecyclerView(IN + "Connection good!");
-                        hideButtons(false);
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                updateRecyclerView(ERROR_IN + error.toString());
-            }
-        });
-        mRequestQueue.add(stringRequest);
-    }// END OF volleyCheckConnection()
-
-
-    /** volleyGetJson()
-     * GETs a json string from db
-     * @param url
-     */
-    public void volleyGetJson(String url){
-
-        updateRecyclerView(OUT + "Sending GET JSON OBJECT request...");
-
-        // Request a string response from url
-        final JsonObjectRequest stringRequest = new JsonObjectRequest(Request.Method.GET, url, null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        jsonParser(response);
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                updateRecyclerView(ERROR_IN + error.toString());
-            }
-        });
-        mRequestQueue.add(stringRequest);
-    } //END OF volleyGetJson()
-
-
-    /** volleyPost()
-     * Posts a test object
-     * @param url
-     */
-    public void volleyPost(String url){
-        updateRecyclerView(OUT + "Sending POST request...");
-
-    }
-
-    /** jsonParser()
-     * Parses a json string to UI
-     * @param jsonStr
-     */
-    public void jsonParser(JSONObject jsonStr) {
-
-        try {
-            JSONArray jsonArray = new JSONArray(jsonStr.names().toString()); // Get all Object names
-            int length = jsonStr.length();
-
-            for(int i =0; i < length; i++){
-                String jsonObjName = jsonArray.getString(i); // get first object name
-                JSONObject jsonObject = jsonStr.getJSONObject(jsonObjName); //get jsonObject from jsonStr by name
-                TestObject testObject = new TestObject(Integer.parseInt(jsonObject.getString("id")), jsonObject.getString("date"));
-                updateRecyclerView(IN + jsonObjName +  ", ID: " + testObject.getId() + "\n     DATE: " + testObject.getDate());
-            }
-        }catch (Exception e){
-            updateRecyclerView("Exception:" + e.getMessage());
-        }
-    }
-
 
 }// END OF MainFragment()
 

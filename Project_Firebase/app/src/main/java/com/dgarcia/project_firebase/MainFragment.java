@@ -1,6 +1,10 @@
 package com.dgarcia.project_firebase;
 
 
+import android.app.IntentService;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.*;
@@ -23,6 +27,7 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.dgarcia.project_firebase.model.TestObject;
+import com.dgarcia.project_firebase.services.MyIntentService;
 import com.dgarcia.project_firebase.services.VolleySingleton;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DatabaseReference;
@@ -60,12 +65,8 @@ public class MainFragment extends Fragment{
 
     //Volley variables
     RequestQueue mRequestQueue;
-    JsonObjectRequest mJsonObjectRequest;
-    JsonArrayRequest mJsonArrayRequest;
-    StringRequest mStringRequest;
     private final String urlForMethods = "https://regis-project.firebaseio.com/Volley/TestObjects.json";
-    private final int STRING = 0, JSON = 1, TEST = 2, JSONARRAY = 3;
-    private static int intTAGS = 1;
+
 
     //Date format variables
     final String dfString = "MM/dd/yy  hh:mm:ss a";  // date format string
@@ -96,6 +97,30 @@ public class MainFragment extends Fragment{
     //******************
     //*** METHODS ******
     //******************
+
+    /**
+     * LAUNCH SERVICE TEST*****************************************************************************************
+     * https://code.tutsplus.com/tutorials/android-fundamentals-intentservice-basics--mobile-6183
+     */
+    private void launchService(){
+        String stringInputMsg = "Im a string message";
+        Intent msgIntent = new Intent(view.getContext(), MyIntentService.class);
+        msgIntent.putExtra(MyIntentService.PARAM_IN_MSG, stringInputMsg);
+        view.getContext().startService(msgIntent);
+    }
+
+    public class MyBroadcastReceiver extends BroadcastReceiver {
+
+        public static final String ACTION_RESPONSE = "com.dgarcia.project_firebase.intent.action.MESSAGE_PROCESSED";
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Toast.makeText(context, intent.toString(), Toast.LENGTH_SHORT).show();
+        }
+    }
+    //***************************************************************************************************************
+
+
 
     /** hideButtons()
      * Sets button visibility

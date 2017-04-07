@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.os.SystemClock;
 import android.widget.Toast;
 
+import com.android.volley.RequestQueue;
+import com.dgarcia.project_firebase.VolleySingleton;
 import com.dgarcia.project_firebase.view_logic.MainFragment;
 
 import java.util.Date;
@@ -19,11 +21,14 @@ public class MyIntentService extends IntentService {
     public static final String PARAM_IN_TEST_CONNECTION = "test_conn";
     private String actionString;
 
+    RequestQueue mRequestQueue;
+
     //gets class name in case I change the class name.
     private final String className = this.getClass().getSimpleName().toString();
 
     public MyIntentService() {
         super("MyIntentService"); // Put "className" here when you are done with testing
+        mRequestQueue = VolleySingleton.getInstance(getApplicationContext()).getRequestQueue(); //Get volley request queue
     }
 
     @Override

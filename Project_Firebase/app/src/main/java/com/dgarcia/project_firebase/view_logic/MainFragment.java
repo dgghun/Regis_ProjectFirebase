@@ -1,15 +1,14 @@
-package com.dgarcia.project_firebase;
+package com.dgarcia.project_firebase.view_logic;
 
 
-import android.app.IntentService;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.*;
 import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.RecyclerView.LayoutManager;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,17 +17,18 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
+import com.dgarcia.project_firebase.R;
+import com.dgarcia.project_firebase.RecyclerTouchListener;
+import com.dgarcia.project_firebase.StringAdapter;
 import com.dgarcia.project_firebase.model.TestObject;
 import com.dgarcia.project_firebase.services.MyIntentService;
-import com.dgarcia.project_firebase.services.VolleySingleton;
+import com.dgarcia.project_firebase.VolleySingleton;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
@@ -67,6 +67,8 @@ public class MainFragment extends Fragment{
     RequestQueue mRequestQueue;
     private final String urlForMethods = "https://regis-project.firebaseio.com/Volley/TestObjects.json";
 
+    //Broadcast Receiver variable
+    private MyBroadcastReceiver receiver;
 
     //Date format variables
     final String dfString = "MM/dd/yy  hh:mm:ss a";  // date format string
@@ -82,14 +84,21 @@ public class MainFragment extends Fragment{
 
         view = inflater.inflate(R.layout.fragment_main, container, false);
 
+        //Register broadcast receiver
+        IntentFilter intentFilter = new IntentFilter(MyBroadcastReceiver.ACTION_RESPONSE);
+        intentFilter.addCategory(Intent.CATEGORY_DEFAULT);
+        receiver = new MyBroadcastReceiver();
+        view.getContext().registerReceiver(receiver, intentFilter);
+
+
         setUpRecyclerListener();
         setUpButtons();
         hideButtons(true);
 
-        mRequestQueue = VolleySingleton.getInstance(view.getContext().getApplicationContext()).getRequestQueue(); //Get volley request queue
-        volleyCheckConnection("https://regis-project.firebaseio.com/regis-project/"); // test connection, if good unhide buttons
-        delete(urlForMethods);
-
+//        mRequestQueue = VolleySingleton.getInstance(view.getContext().getApplicationContext()).getRequestQueue(); //Get volley request queue
+//        volleyCheckConnection("https://regis-project.firebaseio.com/regis-project/"); // test connection, if good unhide buttons
+//        delete(urlForMethods);
+        hideButtons(false);
         return view;
     } // END OF onCreate()
 
@@ -103,19 +112,26 @@ public class MainFragment extends Fragment{
      * https://code.tutsplus.com/tutorials/android-fundamentals-intentservice-basics--mobile-6183
      */
     private void launchService(){
-        String stringInputMsg = "Im a string message";
-        Intent msgIntent = new Intent(view.getContext(), MyIntentService.class);
+        String stringInputMsg = "Im a string message from launchService()";
+//        testObject = new TestObject(count, dateFormat.format(dfString, new Date()).toString()); //Create new object
+        Intent msgIntent = new Intent(view.getContext(), MyIntentService.class); //msg for service intent
         msgIntent.putExtra(MyIntentService.PARAM_IN_MSG, stringInputMsg);
-        view.getContext().startService(msgIntent);
+        msgIntent.setAction(MyIntentService.PARAM_IN_TEST_CONNECTION);
+        view.getContext().startService(msgIntent); //start service that will return info to broadcast receiver
     }
 
+
+    /********************************
+     * BROADCAST RECEIVER CLASS *****
+     *******************************/
     public class MyBroadcastReceiver extends BroadcastReceiver {
 
         public static final String ACTION_RESPONSE = "com.dgarcia.project_firebase.intent.action.MESSAGE_PROCESSED";
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            Toast.makeText(context, intent.toString(), Toast.LENGTH_SHORT).show();
+            String intentStr =intent.getStringExtra(MyIntentService.PARAM_OUT_MSG); //get the string from the service
+            updateRecyclerView(intentStr);
         }
     }
     //***************************************************************************************************************
@@ -147,11 +163,11 @@ public class MainFragment extends Fragment{
         mPostButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                count++;
-                testObject = new TestObject(count, dateFormat.format(dfString, new Date()).toString()); //Create new object
-                volleyPost(urlForMethods, testObject);
+                //count++; // used for Firebase API
+                //testObject = new TestObject(count, dateFormat.format(dfString, new Date()).toString()); //Create new object
+               // volleyPost(urlForMethods, testObject);
                 //fireBaseRef.child("Object " + Integer.toString(testObject.getId())).setValue(testObject); //Add Object via Firebase Android API
-
+                launchService();
             }// END OF onClick()
         }); // END OF setonClickListener()
 
@@ -160,7 +176,7 @@ public class MainFragment extends Fragment{
         mGetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                volleyGetJson(urlForMethods); // Get object json string
+                //volleyGetJson(urlForMethods); // Get object json string
             }
         });
     }

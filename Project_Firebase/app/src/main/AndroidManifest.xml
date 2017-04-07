@@ -18,7 +18,7 @@
             android:exported="false"
             />
 
-        <activity android:name=".MainActivity">
+        <activity android:name=".view_logic.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

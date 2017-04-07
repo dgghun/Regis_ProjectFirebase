@@ -1,4 +1,4 @@
-package com.dgarcia.project_firebase.services;
+package com.dgarcia.project_firebase;
 
 import android.content.Context;
 import android.graphics.Bitmap;

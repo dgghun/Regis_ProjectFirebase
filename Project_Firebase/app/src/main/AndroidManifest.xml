@@ -14,7 +14,7 @@
         >
 
         <service
-            android:name=".services.MyIntentService"
+            android:name=".services.VolleyIntentService"
             android:exported="false"
             />
 

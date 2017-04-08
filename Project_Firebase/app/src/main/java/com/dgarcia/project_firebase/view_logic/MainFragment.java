@@ -10,52 +10,38 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.*;
 import android.support.v7.widget.DividerItemDecoration;
 import android.text.format.DateFormat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
 import com.dgarcia.project_firebase.R;
 import com.dgarcia.project_firebase.RecyclerTouchListener;
 import com.dgarcia.project_firebase.StringAdapter;
 import com.dgarcia.project_firebase.model.TestObject;
-import com.dgarcia.project_firebase.services.MyIntentService;
-import com.dgarcia.project_firebase.VolleySingleton;
+import com.dgarcia.project_firebase.services.VolleyIntentService;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class MainFragment extends Fragment{
 
     private Button mPostButton;
     private Button mGetButton;
+    private Button mDeleteButton;
     private TestObject testObject;
+    private View view;
+
+    //Firebase API variables
     private DatabaseReference fireBaseRef;
     private DatabaseReference connectedRef;
     private ValueEventListener mConnectedListener;
     private ValueEventListener mPostListener;
     private ChildEventListener mChildListener;
-    private static int count = 0;
-    private View view;
-    private final String ROOT = "TestObjects", ROOT2 = "MyObjects";
-    private final String IN = "<- ";
-    private final String OUT = "-> ";
-    private final String ERROR_IN = "<- ERROR ";
 
     //Recycler View variables
     private List<String> mStringList = new ArrayList<>();
@@ -63,8 +49,7 @@ public class MainFragment extends Fragment{
     private StringAdapter mStringAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
 
-    //Volley variables
-    RequestQueue mRequestQueue;
+    //Volley variable
     private final String urlForMethods = "https://regis-project.firebaseio.com/Volley/TestObjects.json";
 
     //Broadcast Receiver variable
@@ -90,51 +75,41 @@ public class MainFragment extends Fragment{
         receiver = new MyBroadcastReceiver();
         view.getContext().registerReceiver(receiver, intentFilter);
 
-
         setUpRecyclerListener();
         setUpButtons();
-        hideButtons(true);
 
-//        mRequestQueue = VolleySingleton.getInstance(view.getContext().getApplicationContext()).getRequestQueue(); //Get volley request queue
-//        volleyCheckConnection("https://regis-project.firebaseio.com/regis-project/"); // test connection, if good unhide buttons
-//        delete(urlForMethods);
-        hideButtons(false);
         return view;
     } // END OF onCreate()
 
 
-    //******************
-    //*** METHODS ******
-    //******************
-
     /**
-     * LAUNCH SERVICE TEST*****************************************************************************************
-     * https://code.tutsplus.com/tutorials/android-fundamentals-intentservice-basics--mobile-6183
+     * Broadcast Receiver CLASS
      */
-    private void launchService(){
-        String stringInputMsg = "Im a string message from launchService()";
-//        testObject = new TestObject(count, dateFormat.format(dfString, new Date()).toString()); //Create new object
-        Intent msgIntent = new Intent(view.getContext(), MyIntentService.class); //msg for service intent
-        msgIntent.putExtra(MyIntentService.PARAM_IN_MSG, stringInputMsg);
-        msgIntent.setAction(MyIntentService.PARAM_IN_TEST_CONNECTION);
-        view.getContext().startService(msgIntent); //start service that will return info to broadcast receiver
-    }
-
-
-    /********************************
-     * BROADCAST RECEIVER CLASS *****
-     *******************************/
     public class MyBroadcastReceiver extends BroadcastReceiver {
 
-        public static final String ACTION_RESPONSE = "com.dgarcia.project_firebase.intent.action.MESSAGE_PROCESSED";
+        public static final String ACTION_RESPONSE = "com.dgarcia.project_firebase.intent.action.MESSAGE_PROCESSE";
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            String intentStr =intent.getStringExtra(MyIntentService.PARAM_OUT_MSG); //get the string from the service
+            String intentStr =intent.getStringExtra(VolleyIntentService.PARAM_OUT_MSG); //get the string from the service
             updateRecyclerView(intentStr);
         }
     }
-    //***************************************************************************************************************
+
+
+    //*** METHODS ****************************************************************************************************************************
+
+    /** launchService()
+     *
+     * https://code.tutsplus.com/tutorials/android-fundamentals-intentservice-basics--mobile-6183
+     */
+    private void launchService(String action){
+        String stringInputMsg = "Im a string message from launchService()";
+        Intent msgIntent = new Intent(view.getContext(), VolleyIntentService.class); //msg for service intent
+        msgIntent.putExtra(VolleyIntentService.PARAM_IN_MSG, stringInputMsg);   // Put string extra. Note: not being used at the moment.
+        msgIntent.setAction(action);    //The service action to perform
+        view.getContext().startService(msgIntent); //start service that will return info to broadcast receiver
+    }//END OF launchService()
 
 
 
@@ -146,40 +121,56 @@ public class MainFragment extends Fragment{
         if(hide) {
             mPostButton.setVisibility(View.INVISIBLE);
             mGetButton.setVisibility(View.INVISIBLE);
+            mDeleteButton.setVisibility(View.INVISIBLE);
         }
         else {
             mPostButton.setVisibility(View.VISIBLE);
             mGetButton.setVisibility(View.VISIBLE);
+            mDeleteButton.setVisibility(View.VISIBLE);
         }
-    }
+    }//END OF hideButtons()
 
 
     /** setUpButtons()
      * Sets up buttons and listeners
      */
     private void setUpButtons(){
-        //Set up POST button
+
+        //SET UP POST BUTTON
         mPostButton = (Button)view.findViewById(R.id.button_POST);
         mPostButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //count++; // used for Firebase API
                 //testObject = new TestObject(count, dateFormat.format(dfString, new Date()).toString()); //Create new object
-               // volleyPost(urlForMethods, testObject);
                 //fireBaseRef.child("Object " + Integer.toString(testObject.getId())).setValue(testObject); //Add Object via Firebase Android API
-                launchService();
+                updateRecyclerView("-> Posting...");
+                launchService(VolleyIntentService.PARAM_IN_VOLLEY_POST);
             }// END OF onClick()
         }); // END OF setonClickListener()
 
-        //Set up GET button
+
+        //SET UP GET BUTTON
         mGetButton = (Button)view.findViewById(R.id.button_GET);
         mGetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //volleyGetJson(urlForMethods); // Get object json string
+                updateRecyclerView("-> Getting...");
+                launchService(VolleyIntentService.PARAM_IN_VOLLEY_GET);
             }
         });
-    }
+
+
+        //SET UP DELETE BUTTON
+        mDeleteButton = (Button)view.findViewById(R.id.button_DELETE);
+        mDeleteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateRecyclerView("-> Deleting entries");
+                launchService(VolleyIntentService.PARAM_IN_VOLLEY_DELETE);
+            }
+        });
+    }// END OF setUpButtons()
 
 
     /** setUpRecyclerListener()
@@ -203,7 +194,7 @@ public class MainFragment extends Fragment{
                     }
                 })
         );
-    }
+    } // END OF setUpRecyclerListener()
 
 
     /** updateRecyclerView()
@@ -214,132 +205,7 @@ public class MainFragment extends Fragment{
         mStringList.add(s);
         mStringAdapter.notifyDataSetChanged();
         mRecyclerView.smoothScrollToPosition(mStringAdapter.getItemCount() - 1);
-    }
-
-
-    /** volleyCheckConnection()
-     * Checks the connection by seeing if we get a string web page response
-     * @param url
-     */
-    public void volleyCheckConnection(String url){
-
-        updateRecyclerView(OUT + "Checking connection to:\n" + "    " + url);
-
-        // Request a string response from url
-        final StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        updateRecyclerView(IN + "Connection good!");
-                        hideButtons(false);
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                updateRecyclerView(ERROR_IN + error.toString());
-            }
-        });
-        mRequestQueue.add(stringRequest);
-    }// END OF volleyCheckConnection()
-
-
-    /** volleyGetJson()
-     * GETs a json string from db
-     * @param url
-     */
-    public void volleyGetJson(String url){
-
-        updateRecyclerView(OUT + "Sending GET JSON OBJECT request...");
-
-        // Request a string response from url
-        final JsonObjectRequest stringRequest = new JsonObjectRequest(Request.Method.GET, url, null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        jsonParser(response);
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                updateRecyclerView(ERROR_IN + error.toString());
-            }
-        });
-        mRequestQueue.add(stringRequest);
-
-    } //END OF volleyGetJson()
-
-    /** jsonParser()
-     * Parses a json string to UI
-     * @param jsonStr
-     */
-    public void jsonParser(JSONObject jsonStr) {
-
-        try {
-            JSONArray jsonArray = new JSONArray(jsonStr.names().toString()); // Get all Object names
-            int length = jsonStr.length();
-
-            for(int i =0; i < length; i++){
-                String jsonObjName = jsonArray.getString(i); // get first object name
-                JSONObject jsonObject = jsonStr.getJSONObject(jsonObjName); //get jsonObject from jsonStr by name
-                TestObject testObject = new TestObject(Integer.parseInt(jsonObject.getString("id")), jsonObject.getString("date"));
-                updateRecyclerView(IN + "(GET) " + jsonObjName +  ", ID: " + testObject.getId() + "\n     DATE: " + testObject.getDate());
-            }
-        }catch (Exception e){
-            updateRecyclerView("Exception:" + e.getMessage());
-        }
-    }
-
-    /** volleyPost()
-     * Posts a test object
-     * @param url
-     */
-    public void volleyPost(String url, final TestObject testObject){
-        updateRecyclerView(OUT + "Sending POST request...");
-
-        try{
-            final JSONObject jsonAttributes = new JSONObject();   // holds data and id
-            jsonAttributes.put("id", testObject.getId());
-            jsonAttributes.put("date", testObject.getDate());
-
-            //Send get request
-            final JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, jsonAttributes,
-                    new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject response) {
-                            updateRecyclerView(IN + "(POST) ID:"+ testObject.getId() + ", DATE:" + testObject.getDate() +" successful!");
-                        }
-                    }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    updateRecyclerView(ERROR_IN + error);
-                }
-            });
-
-            mRequestQueue.add(request);
-        }catch (Exception e){
-            updateRecyclerView("Exception:" + e.getMessage());
-        }
-    }
-
-    /** delete()
-     *
-     * @param url
-     */
-    public void delete(String url){
-        final JsonObjectRequest request = new JsonObjectRequest(Request.Method.DELETE, url, null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.e("DELETE", "Delete complete");
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e("ERROR: ", error.toString());
-            }});
-        mRequestQueue.add(request);
-    }
-
+    } // END OF updateRecyclerView
 
 
 /* TODO - DON'T USE BELOW YET. Android Firebase API stuff */

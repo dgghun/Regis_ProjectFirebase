@@ -6,11 +6,12 @@ import android.text.format.DateFormat;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.IgnoreExtraProperties;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
 
 @IgnoreExtraProperties // <-- Used for firebase
-public class TestObject {
+public class TestObject{
 
     private int id;
     private String Date;

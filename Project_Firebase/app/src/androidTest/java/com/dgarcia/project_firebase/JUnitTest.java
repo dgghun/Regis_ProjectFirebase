@@ -49,95 +49,11 @@ public class JUnitTest extends ApplicationTestCase<Application>{
     @Test
     public void TEST_volleyPOST_GET(){
 
+        assertEquals(true, false);
+        assertEquals(true, true);
 
         Log.e("TEST", "STARTED");
     }
 
-    public void volleyGetJson(String url){
-
-
-        // Request a string response from url
-        final JsonObjectRequest stringRequest = new JsonObjectRequest(Request.Method.GET, url, null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        jsonParser(response);
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-            }
-        });
-        mRequestQueue.add(stringRequest);
-    } //END OF volleyGetJson()
-
-
-    public void jsonParser(JSONObject jsonStr) {
-
-        try {
-            JSONArray jsonArray = new JSONArray(jsonStr.names().toString()); // Get all Object names
-            int length = jsonStr.length();
-
-            for(int i =0; i < length; i++){
-                String jsonObjName = jsonArray.getString(i); // get first object name
-                JSONObject jsonObject = jsonStr.getJSONObject(jsonObjName); //get jsonObject from jsonStr by name
-                TestObject testObject = new TestObject(Integer.parseInt(jsonObject.getString("id")), jsonObject.getString("date"));
-            }
-        }catch (Exception e){
-        }
-    }
-
-
-    public void volleyPost(String url, TestObject testObject){
-        try{
-            JSONObject jsonAttributes = new JSONObject();   // holds data and id
-            jsonAttributes.put("id", testObject.getId());
-            jsonAttributes.put("date", testObject.getDate());
-
-            //Send get request
-            final JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, jsonAttributes,
-                    new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject response) {
-                        }
-                    }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                }
-            });
-
-            mRequestQueue.add(request);
-        }catch (Exception e){
-        }
-    }
-
-    public void volleyCheckConnection(String url){
-        // Request a string response from url
-        final StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-            }
-        });
-        mRequestQueue.add(stringRequest);
-    }// END OF volleyCheckConnection()
-
-    public void delete(String url){
-        final JsonObjectRequest request = new JsonObjectRequest(Request.Method.DELETE, url, null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.e("DELETE", "Delete complete");
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e("ERROR: ", error.toString());
-            }});
-    }
 }
 

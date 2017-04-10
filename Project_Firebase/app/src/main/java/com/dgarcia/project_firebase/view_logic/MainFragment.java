@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.*;
 import android.support.v7.widget.DividerItemDecoration;
@@ -20,13 +21,16 @@ import com.dgarcia.project_firebase.R;
 import com.dgarcia.project_firebase.RecyclerTouchListener;
 import com.dgarcia.project_firebase.StringAdapter;
 import com.dgarcia.project_firebase.model.TestObject;
+import com.dgarcia.project_firebase.services.TestObjectSvcSQLiteImpl;
 import com.dgarcia.project_firebase.services.VolleyIntentService;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 public class MainFragment extends Fragment{
 
@@ -106,7 +110,9 @@ public class MainFragment extends Fragment{
     private void launchService(String action){
         String stringInputMsg = "Im a string message from launchService()";
         Intent msgIntent = new Intent(view.getContext(), VolleyIntentService.class); //msg for service intent
+
         msgIntent.putExtra(VolleyIntentService.PARAM_IN_MSG, stringInputMsg);   // Put string extra. Note: not being used at the moment.
+
         msgIntent.setAction(action);    //The service action to perform
         view.getContext().startService(msgIntent); //start service that will return info to broadcast receiver
     }//END OF launchService()
@@ -141,8 +147,8 @@ public class MainFragment extends Fragment{
         mPostButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //count++; // used for Firebase API
-                //testObject = new TestObject(count, dateFormat.format(dfString, new Date()).toString()); //Create new object
+
+//                testObject = new TestObject(Integer.parseInt(UUID.randomUUID().toString()), dateFormat.format(dfString, new Date()).toString()); //Create new object
                 //fireBaseRef.child("Object " + Integer.toString(testObject.getId())).setValue(testObject); //Add Object via Firebase Android API
                 updateRecyclerView("-> Posting...");
                 launchService(VolleyIntentService.PARAM_IN_VOLLEY_POST);
@@ -208,7 +214,19 @@ public class MainFragment extends Fragment{
     } // END OF updateRecyclerView
 
 
-/* TODO - DON'T USE BELOW YET. Android Firebase API stuff */
+    @Override
+    public void onStart(){
+        super.onStart();
+        launchService(VolleyIntentService.PARAM_IN_VOLLEY_DELETE_INIT); // delete everything. For now...
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        launchService(VolleyIntentService.PARAM_IN_VOLLEY_DELETE_INIT); // delete everything. For now...
+    }
+
+    /* TODO - DON'T USE BELOW YET. Android Firebase API stuff */
     //    @Override
 //    public void onStart(){
 //        super.onStart();

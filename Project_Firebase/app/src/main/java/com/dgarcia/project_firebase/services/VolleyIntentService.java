@@ -2,6 +2,7 @@ package com.dgarcia.project_firebase.services;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.os.SystemClock;
 import android.text.format.DateFormat;
 
 import com.android.volley.Request;
@@ -18,6 +19,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.Date;
+import java.util.List;
 
 
 public class VolleyIntentService extends IntentService {
@@ -32,10 +34,12 @@ public class VolleyIntentService extends IntentService {
     public static final String PARAM_IN_VOLLEY_GET = "volley_get";
     public static final String PARAM_IN_VOLLEY_POST = "volley_post";
     public static final String PARAM_IN_VOLLEY_DELETE = "volley_delete";
+    public static final String PARAM_IN_VOLLEY_DELETE_INIT = "volley_delete_init";
 
-    public static int mCount = 1;
     final String dfString = "MM/dd/yy  hh:mm:ss a";  // date format string
     final android.text.format.DateFormat dateFormat = new DateFormat();
+
+    private TestObjectSvcSQLiteImpl mTestObjectSvcSQLite;
 
     private final String mUrlConnection = "https://regis-project.firebaseio.com/regis-project/";
     private final String mUrlForMethods = "https://regis-project.firebaseio.com/Volley/TestObjects.json";
@@ -49,7 +53,7 @@ public class VolleyIntentService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-
+        mTestObjectSvcSQLite = new TestObjectSvcSQLiteImpl(this.getApplicationContext());   // get a database
         mRequestQueue = VolleySingleton.getInstance(this.getApplicationContext()).getRequestQueue(); //Get volley request queue
         String actionString = intent.getAction();
 
@@ -57,7 +61,7 @@ public class VolleyIntentService extends IntentService {
             CheckConnection();
         }
         else if(actionString.equals((PARAM_IN_VOLLEY_GET))){
-            GetJson();
+            Get();
         }
         else if(actionString.equals(PARAM_IN_VOLLEY_POST)){
             Post();
@@ -65,11 +69,15 @@ public class VolleyIntentService extends IntentService {
         else if(actionString.equals(PARAM_IN_VOLLEY_DELETE)){
             Delete();
         }
+        else if(actionString.equals(PARAM_IN_VOLLEY_DELETE_INIT)){
+            DeleteInitTesting();
+        }
         else SendBroadcastString("<- ERROR: No service for action (" + actionString + ")");
 
         //Gets data from the incoming Intent
 //        String msg = intent.getStringExtra(PARAM_IN_MSG);
     }
+
 
     /** SendBroadcastString()
      *
@@ -106,29 +114,43 @@ public class VolleyIntentService extends IntentService {
     }// END OF volleyCheckConnection()
 
 
-    /** getJson()
+    /** Get()
      *
      */
-    public void GetJson(){
+    public void Get() {
 
-        // Request a string response from url
-        final JsonObjectRequest stringRequest = new JsonObjectRequest(Request.Method.GET, mUrlForMethods, null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        jsonParser(response);
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                SendBroadcastString("<- ERROR:" + error.toString());
+        //Check if local has data
+        if (mTestObjectSvcSQLite.getNumOfRows() >= 1) {
+            List<TestObject> testObjects = mTestObjectSvcSQLite.retrieveAllTestObjects();
+
+            for (TestObject testObject : testObjects) {
+                SystemClock.sleep(100); // delay for smooth scrolling RecyclerView
+                SendBroadcastString("<- (LOCAL) Get:\n<-  ID:" + testObject.getId() + " DATE:" + testObject.getDate());
             }
-        });
-        mRequestQueue.add(stringRequest);
+        }
+        else { //Not stored locally check server
+
+            // Request a string response from url
+            final JsonObjectRequest stringRequest = new JsonObjectRequest(Request.Method.GET, mUrlForMethods, null,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            jsonParser(response); //Helper method
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    if (error.getMessage().contains("null") || error.getMessage().contains("NULL"))
+                        SendBroadcastString("<- No objects. Database is empty.");
+                    else
+                        SendBroadcastString("<- ERROR:" + error.toString());
+                }
+            });
+            mRequestQueue.add(stringRequest);
+        }
     } //END OF volleyGetJson()
 
-
-    /** jsonParser()
+    /** jsonParser() Helper Method
      *
      * @param jsonStr
      */
@@ -142,7 +164,10 @@ public class VolleyIntentService extends IntentService {
                 String jsonObjName = jsonArray.getString(i); // get first object name
                 JSONObject jsonObject = jsonStr.getJSONObject(jsonObjName); //get jsonObject from jsonStr by name
                 TestObject testObject = new TestObject(Integer.parseInt(jsonObject.getString("id")), jsonObject.getString("date"));
-                SendBroadcastString("<- ID:" + testObject.getId() + " DATE:" + testObject.getDate());
+
+                mTestObjectSvcSQLite.create(testObject);    // add to local cache
+
+                SendBroadcastString("<- (WEB) Get:\n<- ID:" + testObject.getId() + " DATE:" + testObject.getDate());
             }
         }catch (Exception e){
             SendBroadcastString("<- Exception:" + e.getMessage());
@@ -155,49 +180,83 @@ public class VolleyIntentService extends IntentService {
      */
     public void Post(){
 
-        try{
-            TestObject testObject = new TestObject(mCount, dateFormat.format(dfString, new Date()).toString()); //Create new object
-            final JSONObject jsonAttributes = new JSONObject();   // holds data and id
-            jsonAttributes.put("id", testObject.getId());
-            jsonAttributes.put("date", testObject.getDate());
+        TestObject testObject = new TestObject(); //Create new object
+        testObject.setDate(dateFormat.format(dfString, new Date()).toString()); //set date
+        testObject = mTestObjectSvcSQLite.create(testObject);   // add to local cache
 
-            //Send get request
-            final JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, mUrlForMethods, jsonAttributes,
-                    new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject response) {
-                            SendBroadcastString("<- Post Success!");
-                        }
-                    }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    SendBroadcastString("<- ERROR:" + error.getMessage());
-                }
-            });
+        if(testObject == null)  // if failed to cache
+            SendBroadcastString("<- ERROR: couldn't cache locally. Post aborted.");
+        else {
 
-            mRequestQueue.add(request);
-        }catch (Exception e){
-            SendBroadcastString("<- Exception:" + e.getMessage());
+            try {
+
+                final JSONObject jsonAttributes = new JSONObject();   // holds data and id
+                jsonAttributes.put("id", testObject.getId());
+                jsonAttributes.put("date", testObject.getDate());
+                final String testObjStr = "ID:"+testObject.getId() + " DATE:" + testObject.getDate();
+
+                //Send get request
+                final JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, mUrlForMethods, jsonAttributes,
+                        new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                SendBroadcastString("<- Posted:\n<- " + testObjStr);
+                            }
+                        }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        SendBroadcastString("<- (WEB) ERROR:" + error.getMessage());
+                    }
+                });
+
+                mRequestQueue.add(request);
+            } catch (Exception e) {
+                SendBroadcastString("<- Exception:" + e.getMessage());
+            }
         }
-        mCount++;
-    }
+    } //END OF Post()
 
 
     /** delete()
      *
      */
     public void Delete(){
+        int numOfRows = mTestObjectSvcSQLite.deleteAll();
+
+        if(numOfRows == 0) SendBroadcastString("<- (LOCAL) Delete complete!");
+        else SendBroadcastString("ERROR: LOCAL delete error!");
+
         final JsonObjectRequest request = new JsonObjectRequest(Request.Method.DELETE, mUrlForMethods, null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        SendBroadcastString("<- Delete complete");
+                        SendBroadcastString("<- (WEB) Delete complete");
                     }
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-//                SendBroadcastString("<- ERROR: " + error.getMessage());
-                SendBroadcastString("<- Delete complete!");
+                if(error.getMessage().contains("null") || error.getMessage().contains("NULL"))
+                    SendBroadcastString("<- (WEB) Delete complete!");
+                else
+                    SendBroadcastString("ERROR:" + error.getMessage());
+            }});
+        mRequestQueue.add(request);
+    }
+
+
+    // Used to delete everything on start and stop. For testing.
+    public void DeleteInitTesting(){
+        mTestObjectSvcSQLite.deleteAll();
+
+        final JsonObjectRequest request = new JsonObjectRequest(Request.Method.DELETE, mUrlForMethods, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
             }});
         mRequestQueue.add(request);
     }

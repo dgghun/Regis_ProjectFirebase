@@ -34,7 +34,7 @@ public class VolleyIntentService extends IntentService {
     public static final String PARAM_IN_VOLLEY_GET = "volley_get";
     public static final String PARAM_IN_VOLLEY_POST = "volley_post";
     public static final String PARAM_IN_VOLLEY_DELETE = "volley_delete";
-    public static final String PARAM_IN_VOLLEY_DELETE_INIT = "volley_delete_init";
+    public static final String PARAM_IN_VOLLEY_DELETE_LOCAL = "volley_delete_local";
 
     final String dfString = "MM/dd/yy  hh:mm:ss a";  // date format string
     final android.text.format.DateFormat dateFormat = new DateFormat();
@@ -69,8 +69,8 @@ public class VolleyIntentService extends IntentService {
         else if(actionString.equals(PARAM_IN_VOLLEY_DELETE)){
             Delete();
         }
-        else if(actionString.equals(PARAM_IN_VOLLEY_DELETE_INIT)){
-            DeleteInitTesting();
+        else if(actionString.equals(PARAM_IN_VOLLEY_DELETE_LOCAL)){
+            DeleteLocalCache();
         }
         else SendBroadcastString("<- ERROR: No service for action (" + actionString + ")");
 
@@ -245,19 +245,8 @@ public class VolleyIntentService extends IntentService {
 
 
     // Used to delete everything on start and stop. For testing.
-    public void DeleteInitTesting(){
+    public void DeleteLocalCache(){
         mTestObjectSvcSQLite.deleteAll();
-
-        final JsonObjectRequest request = new JsonObjectRequest(Request.Method.DELETE, mUrlForMethods, null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-
-            }});
-        mRequestQueue.add(request);
     }
+
 }

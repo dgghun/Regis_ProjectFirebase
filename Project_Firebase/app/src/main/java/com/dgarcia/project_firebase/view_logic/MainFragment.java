@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.*;
 import android.support.v7.widget.DividerItemDecoration;
@@ -21,16 +20,13 @@ import com.dgarcia.project_firebase.R;
 import com.dgarcia.project_firebase.RecyclerTouchListener;
 import com.dgarcia.project_firebase.StringAdapter;
 import com.dgarcia.project_firebase.model.TestObject;
-import com.dgarcia.project_firebase.services.TestObjectSvcSQLiteImpl;
 import com.dgarcia.project_firebase.services.VolleyIntentService;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 public class MainFragment extends Fragment{
 
@@ -217,13 +213,13 @@ public class MainFragment extends Fragment{
     @Override
     public void onStart(){
         super.onStart();
-        launchService(VolleyIntentService.PARAM_IN_VOLLEY_DELETE_INIT); // delete everything. For now...
+        launchService(VolleyIntentService.PARAM_IN_VOLLEY_GET);
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        launchService(VolleyIntentService.PARAM_IN_VOLLEY_DELETE_INIT); // delete everything. For now...
+        launchService(VolleyIntentService.PARAM_IN_VOLLEY_DELETE_LOCAL); // delete local cache
     }
 
     /* TODO - DON'T USE BELOW YET. Android Firebase API stuff */

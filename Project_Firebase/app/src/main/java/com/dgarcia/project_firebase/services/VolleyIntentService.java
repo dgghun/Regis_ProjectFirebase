@@ -30,25 +30,25 @@ public class VolleyIntentService extends IntentService {
     public static final String PARAM_OUT_MSG = "omsg";
 
     //Actions
-    public static final String PARAM_IN_VOLLEY_TEST_CONNECTION = "volley_test_conn";
-    public static final String PARAM_IN_VOLLEY_GET = "volley_get";
-    public static final String PARAM_IN_VOLLEY_POST = "volley_post";
-    public static final String PARAM_IN_VOLLEY_DELETE = "volley_delete";
-    public static final String PARAM_IN_VOLLEY_DELETE_LOCAL = "volley_delete_local";
+    public static final String PARAM_ACTION_VOLLEY_TEST_CONNECTION = "volley_test_conn";
+    public static final String PARAM_ACTION_VOLLEY_GET = "volley_get";
+    public static final String PARAM_ACTION_VOLLEY_POST = "volley_post";
+    public static final String PARAM_ACTION_VOLLEY_DELETE = "volley_delete";
+    public static final String PARAM_ACTION_SQLite_DELETE_LOCAL = "sql_delete_local";
 
     final String dfString = "MM/dd/yy  hh:mm:ss a";  // date format string
     final android.text.format.DateFormat dateFormat = new DateFormat();
 
-    private TestObjectSvcSQLiteImpl mTestObjectSvcSQLite;
+    private TestObjectSvcSQLiteImpl mTestObjectSvcSQLite; // For local cache
 
     private final String mUrlConnection = "https://regis-project.firebaseio.com/regis-project/";
     private final String mUrlForMethods = "https://regis-project.firebaseio.com/Volley/TestObjects.json";
 
-    RequestQueue mRequestQueue;
+    RequestQueue mRequestQueue; // Volley queue
 
 
     public VolleyIntentService() {
-        super("VolleyIntentService"); // Put "className" here when you are done with testing
+        super("VolleyIntentService");
     }
 
     @Override
@@ -57,19 +57,19 @@ public class VolleyIntentService extends IntentService {
         mRequestQueue = VolleySingleton.getInstance(this.getApplicationContext()).getRequestQueue(); //Get volley request queue
         String actionString = intent.getAction();
 
-        if (actionString.equals(PARAM_IN_VOLLEY_TEST_CONNECTION)){
+        if (actionString.equals(PARAM_ACTION_VOLLEY_TEST_CONNECTION)){
             CheckConnection();
         }
-        else if(actionString.equals((PARAM_IN_VOLLEY_GET))){
+        else if(actionString.equals((PARAM_ACTION_VOLLEY_GET))){
             Get();
         }
-        else if(actionString.equals(PARAM_IN_VOLLEY_POST)){
+        else if(actionString.equals(PARAM_ACTION_VOLLEY_POST)){
             Post();
         }
-        else if(actionString.equals(PARAM_IN_VOLLEY_DELETE)){
+        else if(actionString.equals(PARAM_ACTION_VOLLEY_DELETE)){
             Delete();
         }
-        else if(actionString.equals(PARAM_IN_VOLLEY_DELETE_LOCAL)){
+        else if(actionString.equals(PARAM_ACTION_SQLite_DELETE_LOCAL)){
             DeleteLocalCache();
         }
         else SendBroadcastString("<- ERROR: No service for action (" + actionString + ")");

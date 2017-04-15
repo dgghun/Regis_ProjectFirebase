@@ -57,6 +57,21 @@ public class TestObjectSvcSQLiteImpl extends SQLiteOpenHelper{
     }
 
 
+    public TestObject create(TestObject testObject, int id){
+        SQLiteDatabase db = this.getWritableDatabase(); //get db object
+        ContentValues values = new ContentValues();     // Create object to hold values to go into table
+        values.put("date", testObject.getDate());       // add values
+        values.put("id", id);
+
+        long rowIdOfInsertedRecord = db.insert(TABLE_TESTOBJECTS, null, values);
+        db.close();
+
+        if (rowIdOfInsertedRecord == -1) return null;       //insert failed
+        else testObject.setId((int)rowIdOfInsertedRecord);  //insert id
+
+        return testObject;
+    }
+
 
     public TestObject update(TestObject testObject){
         SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
@@ -64,6 +79,7 @@ public class TestObjectSvcSQLiteImpl extends SQLiteOpenHelper{
 
         //Add values for row update
         values.put("date", testObject.getDate());
+
 
         //Tell update how fo find the record to update by id
         int numOfRowsUpdated = sqLiteDatabase.update(TABLE_TESTOBJECTS, values, "id = ?", new String[]{String.valueOf(testObject.getId())});

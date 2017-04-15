@@ -20,6 +20,7 @@ import com.dgarcia.project_firebase.R;
 import com.dgarcia.project_firebase.RecyclerTouchListener;
 import com.dgarcia.project_firebase.StringAdapter;
 import com.dgarcia.project_firebase.model.TestObject;
+import com.dgarcia.project_firebase.services.FirebaseIntentService;
 import com.dgarcia.project_firebase.services.VolleyIntentService;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DatabaseReference;
@@ -78,6 +79,8 @@ public class MainFragment extends Fragment{
         setUpRecyclerListener();
         setUpButtons();
 
+        launchFirebaseService(FirebaseIntentService.PARAM_ACTION_FIREBASE_START);
+
         return view;
     } // END OF onCreate()
 
@@ -91,7 +94,8 @@ public class MainFragment extends Fragment{
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            String intentStr =intent.getStringExtra(VolleyIntentService.PARAM_OUT_MSG); //get the string from the service
+//            String intentStr =intent.getStringExtra(VolleyIntentService.PARAM_OUT_MSG); //get the string from the service
+            String intentStr =intent.getStringExtra(FirebaseIntentService.PARAM_OUT_MSG); //get the string from the service
             updateRecyclerView(intentStr);
         }
     }
@@ -99,20 +103,31 @@ public class MainFragment extends Fragment{
 
     //*** METHODS ****************************************************************************************************************************
 
-    /** launchService()
+    /** launchVolleyService()
      *
      * https://code.tutsplus.com/tutorials/android-fundamentals-intentservice-basics--mobile-6183
      */
-    private void launchService(String action){
-        String stringInputMsg = "Im a string message from launchService()";
+    private void launchVolleyService(String action){
+        String stringInputMsg = "Im a string message from launchVolleyService()";
         Intent msgIntent = new Intent(view.getContext(), VolleyIntentService.class); //msg for service intent
 
         msgIntent.putExtra(VolleyIntentService.PARAM_IN_MSG, stringInputMsg);   // Put string extra. Note: not being used at the moment.
 
         msgIntent.setAction(action);    //The service action to perform
         view.getContext().startService(msgIntent); //start service that will return info to broadcast receiver
-    }//END OF launchService()
+    }//END OF launchVolleyService()
 
+
+
+    private void launchFirebaseService(String action){
+        String stringInputMsg = "Im a string message from launchFirebaseService()";
+        Intent msgIntent = new Intent(view.getContext(), FirebaseIntentService.class); //msg for service intent
+
+        msgIntent.putExtra(FirebaseIntentService.PARAM_IN_MSG, stringInputMsg);   // Put string extra. Note: not being used at the moment.
+
+        msgIntent.setAction(action);    //The service action to perform
+        view.getContext().startService(msgIntent); //start service that will return info to broadcast receiver
+    }//END OF LaunchFirebaseService()
 
 
     /** hideButtons()
@@ -143,11 +158,9 @@ public class MainFragment extends Fragment{
         mPostButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-//                testObject = new TestObject(Integer.parseInt(UUID.randomUUID().toString()), dateFormat.format(dfString, new Date()).toString()); //Create new object
-                //fireBaseRef.child("Object " + Integer.toString(testObject.getId())).setValue(testObject); //Add Object via Firebase Android API
                 updateRecyclerView("-> Posting...");
-                launchService(VolleyIntentService.PARAM_IN_VOLLEY_POST);
+//                launchVolleyService(VolleyIntentService.PARAM_ACTION_VOLLEY_POST);
+                launchFirebaseService(FirebaseIntentService.PARAM_ACTION_FIRESBASE_POST);
             }// END OF onClick()
         }); // END OF setonClickListener()
 
@@ -158,7 +171,8 @@ public class MainFragment extends Fragment{
             @Override
             public void onClick(View v) {
                 updateRecyclerView("-> Getting...");
-                launchService(VolleyIntentService.PARAM_IN_VOLLEY_GET);
+//                launchVolleyService(VolleyIntentService.PARAM_ACTION_VOLLEY_GET);
+                launchFirebaseService(FirebaseIntentService.PARAM_ACTION_FIREBASE_GET);
             }
         });
 
@@ -169,7 +183,8 @@ public class MainFragment extends Fragment{
             @Override
             public void onClick(View v) {
                 updateRecyclerView("-> Deleting entries");
-                launchService(VolleyIntentService.PARAM_IN_VOLLEY_DELETE);
+//                launchVolleyService(VolleyIntentService.PARAM_ACTION_VOLLEY_DELETE);
+                launchFirebaseService(FirebaseIntentService.PARAM_ACTION_FIRESBASE_DELETE);
             }
         });
     }// END OF setUpButtons()
@@ -213,138 +228,24 @@ public class MainFragment extends Fragment{
     @Override
     public void onStart(){
         super.onStart();
-        launchService(VolleyIntentService.PARAM_IN_VOLLEY_GET);
+//        launchVolleyService(VolleyIntentService.PARAM_ACTION_VOLLEY_GET);
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        launchService(VolleyIntentService.PARAM_IN_VOLLEY_DELETE_LOCAL); // delete local cache
+//        launchVolleyService(VolleyIntentService.PARAM_ACTION_SQLite_DELETE_LOCAL); // delete local cache
+        launchFirebaseService(FirebaseIntentService.PARAM_ACTION_FIREBASE_STOP);
+//        launchFirebaseService(FirebaseIntentService.PARAM_ACTION_SQLite_DELETE_LOCAL);
     }
 
-    /* TODO - DON'T USE BELOW YET. Android Firebase API stuff */
-    //    @Override
-//    public void onStart(){
-//        super.onStart();
-//
-//         //Temp login for Firebase
-//        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-//        mAuth.signInWithEmailAndPassword("dgghun@gmail.com", "david123456");
-//
-//        fireBaseRef = FirebaseDatabase.getInstance().getReference(ROOT2); //get firebase handle
-//        fireBaseRef.getRef().removeValue(); //Clear data base
-//
-//        //Add connected listener
-//        connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected");
-//        ValueEventListener connectedListener = new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//                boolean connected = dataSnapshot.getValue(Boolean.class);
-//                if(connected){
-//                    Toast.makeText(view.getContext(), "Connected to Firebase", Toast.LENGTH_SHORT).show();
-//                }else {
-//                    Toast.makeText(view.getContext(), "Disconnected from Firebase", Toast.LENGTH_SHORT).show();
-//                }
-//            }
-//
-//            @Override
-//            public void onCancelled(DatabaseError databaseError) {
-//
-//            }
-//        };
-//
-//
-//        //Add value event listener
-//        ValueEventListener postListener = new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//
-//                try {
-//                    for(DataSnapshot dbObject : dataSnapshot.getChildren()){
-//
-//                        mOutputWindow.append(" <-------onDataChange (Name: " + dbObject.getKey() + ")");
-//                        mOutputWindow.append(" (ID:" + dbObject.getValue(TestObject.class).getId() + ")");
-//                        mOutputWindow.append(" (Date:" + dbObject.getValue(TestObject.class).getDate() + ")" + "\n");
-//                        scrollDown(mOutputWindow, view);
-//                    }
-//                }catch (Exception e){
-//                    Toast.makeText(view.getContext(), e.toString(), Toast.LENGTH_SHORT).show();
-//                }
-//            }
-//            @Override
-//            public void onCancelled(DatabaseError databaseError) {
-//                Log.e("ERROR", "loadPost:onCancelled", databaseError.toException());
-//                Toast.makeText(view.getContext(), "Failed to load post.", Toast.LENGTH_SHORT).show();
-//            }
-//        }; //END OF ValueEventListener()
-//
-//
-//        //Add child listener
-//        ChildEventListener childListener = new ChildEventListener() {
-//            @Override
-//            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-//                TestObject testObject = dataSnapshot.getValue(TestObject.class);
-//                try {
-//                    mOutputWindow.append("\n <- onChildAdded (ID:" + testObject.getId() + "-" + testObject.getDate() + ")\n");
-//                    scrollDown(mOutputWindow, view);
-//                }catch (Exception e){
-//                    Toast.makeText(view.getContext(), e.toString(), Toast.LENGTH_SHORT).show();
-//                }
-//            }
-//
-//            @Override
-//            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-//                TestObject testObject = dataSnapshot.getValue(TestObject.class);
-//                try {
-//                    mOutputWindow.append("\n <- onChildChanged (ID:" + testObject.getId() + "-" + testObject.getDate() + ")\n");
-//                    scrollDown(mOutputWindow, view);
-//                }catch (Exception e){
-//                    Toast.makeText(view.getContext(), e.toString(), Toast.LENGTH_SHORT).show();
-//                }
-//            }
-//
-//            @Override
-//            public void onChildRemoved(DataSnapshot dataSnapshot) {
-//
-//            }
-//
-//            @Override
-//            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-//
-//            }
-//
-//            @Override
-//            public void onCancelled(DatabaseError databaseError) {
-//
-//            }
-//        }; //END OF ChildEventListener
-//
-//        fireBaseRef.addValueEventListener(postListener);
-//        fireBaseRef.addChildEventListener(childListener);
-//        connectedRef.addValueEventListener(connectedListener);
-//
-//        //Copy listeners to stop later on
-//        mChildListener = childListener;
-//        mPostListener = postListener;
-//        mConnectedListener = connectedListener;
-//
-//    } //END OF onStart()
-//
-//
-//    @Override
-//    public void onStop(){
-//        super.onStop();
-//        if(mPostListener != null)
-//            fireBaseRef.removeEventListener(mPostListener);
-//
-//        if(mChildListener != null)
-//            fireBaseRef.removeEventListener(mChildListener);
-//
-//        if(mConnectedListener != null)
-//            connectedRef.removeEventListener(mConnectedListener);
-//
-////        fireBaseRef.getRef().removeValue(); // remove values from db
-//    } // END OF onStop()
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        launchFirebaseService(FirebaseIntentService.PARAM_ACTION_FIREBASE_STOP);
+        launchFirebaseService(FirebaseIntentService.PARAM_ACTION_SQLite_DELETE_LOCAL);
+    }
+
 
 }// END OF MainFragment()
 

@@ -161,10 +161,6 @@ public class FirebaseIntentService extends IntentService{
 
 
 
-    public void IsConnectedFirebase(){
-
-    }
-
     public void StartFirebase(){
 
         //Temp login for Firebase

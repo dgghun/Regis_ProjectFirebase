@@ -79,7 +79,7 @@ public class MainFragment extends Fragment{
         setUpRecyclerListener();
         setUpButtons();
 
-        launchFirebaseService(FirebaseIntentService.PARAM_ACTION_FIREBASE_START);
+        launchFirebaseService(FirebaseIntentService.PARAM_ACTION_FIREBASE_START); // Start Firebase
 
         return view;
     } // END OF onCreate()
@@ -94,8 +94,13 @@ public class MainFragment extends Fragment{
 
         @Override
         public void onReceive(Context context, Intent intent) {
-//            String intentStr =intent.getStringExtra(VolleyIntentService.PARAM_OUT_MSG); //get the string from the service
-            String intentStr =intent.getStringExtra(FirebaseIntentService.PARAM_OUT_MSG); //get the string from the service
+//            String intentStr =intent.getStringExtra(VolleyIntentService.PARAM_OUT_MSG); //get the string from the VolleyIntentService
+
+            //Firebase intent message
+            String intentStr =intent.getStringExtra(FirebaseIntentService.PARAM_OUT_MSG); //get the string from the FirebaseIntentService
+            if(intentStr.contains(FirebaseIntentService.CONNECTED)) hideButtons(false);
+            else if (intentStr.contains(FirebaseIntentService.NOT_CONNECTED)) hideButtons(true);
+
             updateRecyclerView(intentStr);
         }
     }

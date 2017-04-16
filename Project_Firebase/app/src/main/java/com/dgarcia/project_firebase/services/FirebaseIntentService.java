@@ -4,12 +4,8 @@ package com.dgarcia.project_firebase.services;
 import android.app.IntentService;
 import android.content.Intent;
 import android.os.SystemClock;
-import android.support.annotation.Nullable;
 import android.text.format.DateFormat;
-import android.util.Log;
-import android.widget.Toast;
 
-import com.dgarcia.project_firebase.VolleySingleton;
 import com.dgarcia.project_firebase.model.TestObject;
 import com.dgarcia.project_firebase.view_logic.MainFragment;
 import com.google.firebase.auth.FirebaseAuth;
@@ -34,6 +30,9 @@ public class FirebaseIntentService extends IntentService{
     public static final String PARAM_ACTION_SQLite_DELETE_LOCAL= "sqlite_delete_local";
     public static final String PARAM_ACTION_FIREBASE_STOP= "firebase_stop";
     public static final String PARAM_ACTION_FIREBASE_START= "firebase_start";
+
+    public static final String CONNECTED = "Connected";
+    public static final String NOT_CONNECTED = "Not connected";
 
     final String dfString = "MM/dd/yy  hh:mm:ss a";  // date format string
     final android.text.format.DateFormat dateFormat = new DateFormat();
@@ -177,10 +176,10 @@ public class FirebaseIntentService extends IntentService{
             public void onDataChange(DataSnapshot dataSnapshot) {
                 boolean connected = dataSnapshot.getValue(Boolean.class);
                 if(connected){
-                    SendBroadcastString("<- Connected to Firebase!");
+                    SendBroadcastString("<- "+ CONNECTED + " to Firebase!");
 
                 }else {
-                    SendBroadcastString("<- ERROR: Not connected to Firebase");
+                    SendBroadcastString("<- ERROR: " + NOT_CONNECTED + " to Firebase");
                 }
             }
 

@@ -60,8 +60,10 @@ public class FirebaseIntentService extends IntentService{
         String actionString = intent.getAction();
 //        String msg = intent.getStringExtra(PARAM_IN_MSG); //Gets data from the incoming Intent
 
-        if(actionString.equals(PARAM_ACTION_FIREBASE_START))
-            StartFirebase();
+        if(actionString.equals(PARAM_ACTION_FIREBASE_START) && !firebaseStarted) {
+                StartFirebase();
+            firebaseStarted = true;
+        }
         else if (actionString.equals(PARAM_ACTION_FIREBASE_STOP))
             StopFirebase();
         else if (actionString.equals(PARAM_ACTION_FIREBASE_GET))
@@ -88,6 +90,7 @@ public class FirebaseIntentService extends IntentService{
         broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
         broadcastIntent.putExtra(PARAM_OUT_MSG, msg);
         sendBroadcast(broadcastIntent);
+
     }
 
 
@@ -202,7 +205,7 @@ public class FirebaseIntentService extends IntentService{
 //                        SendBroadcastString("<- postListener: " + testObject.getId() + " " + testObject.getDate());
 
                         if(mTestObjectSvcSQLite.update(testObject) == null) // update local cache
-                            mTestObjectSvcSQLite.create(testObject, testObject.getId()); // if not cached, cache it
+                            mTestObjectSvcSQLite.create(testObject, testObject.getId()); // if not cached, cache it at position of getId()
 
                     }
                 }catch (Exception e){
@@ -273,6 +276,7 @@ public class FirebaseIntentService extends IntentService{
 
         if(mConnectedListener != null)
             connectedRef.removeEventListener(mConnectedListener);
+
 
     } // END OF StopFireabase()
 }

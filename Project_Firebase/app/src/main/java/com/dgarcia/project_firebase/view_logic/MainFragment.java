@@ -1,15 +1,19 @@
 package com.dgarcia.project_firebase.view_logic;
 
 
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.*;
 import android.support.v7.widget.DividerItemDecoration;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -76,8 +80,8 @@ public class MainFragment extends Fragment{
         receiver = new MyBroadcastReceiver();
         view.getContext().registerReceiver(receiver, intentFilter);
 
-        setUpRecyclerListener();
-        setUpButtons();
+        setUpRecyclerListener();    // Method that sets up the Recycler Listener
+        setUpButtons();             // Method that sets up button listeners
 
         launchFirebaseService(FirebaseIntentService.PARAM_ACTION_FIREBASE_START); // Start Firebase
 
@@ -91,6 +95,7 @@ public class MainFragment extends Fragment{
     public class MyBroadcastReceiver extends BroadcastReceiver {
 
         public static final String ACTION_RESPONSE = "com.dgarcia.project_firebase.intent.action.MESSAGE_PROCESSE";
+        ProgressDialog progressDialog;
 
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -98,8 +103,21 @@ public class MainFragment extends Fragment{
 
             //Firebase intent message
             String intentStr =intent.getStringExtra(FirebaseIntentService.PARAM_OUT_MSG); //get the string from the FirebaseIntentService
-            if(intentStr.contains(FirebaseIntentService.CONNECTED)) hideButtons(false);
-            else if (intentStr.contains(FirebaseIntentService.NOT_CONNECTED)) hideButtons(true);
+            if(intentStr.contains(FirebaseIntentService.CONNECTED)) {
+                hideButtons(false);
+                progressDialog.dismiss(); // When connected get rid of progress box
+            }
+            else if (intentStr.contains(FirebaseIntentService.NOT_CONNECTED)) {
+                hideButtons(true);
+
+                // Show progress box when not connected
+                ConnectivityManager connectivityManager = (ConnectivityManager) view.getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+                NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+                if(activeNetworkInfo != null && activeNetworkInfo.isConnected())
+                    progressDialog = ProgressDialog.show(view.getContext(), "Please Wait", "Trying to connect to Firebase.", true);
+                else progressDialog = ProgressDialog.show(view.getContext(), "No Internet", "Please turn on wifi or data.", true);
+                progressDialog.setCancelable(false);
+            }
 
             updateRecyclerView(intentStr);
         }
@@ -224,9 +242,10 @@ public class MainFragment extends Fragment{
      * @param s
      */
     private void updateRecyclerView(String s){
-        mStringList.add(s);
+        mStringList.add(0,s);   // add to first posiion in Recycle View
         mStringAdapter.notifyDataSetChanged();
-        mRecyclerView.smoothScrollToPosition(mStringAdapter.getItemCount() - 1);
+       // mRecyclerView.smoothScrollToPosition(mStringAdapter.getItemCount() - 1);  // Scroll to last position
+        mRecyclerView.smoothScrollToPosition(0);    //Scroll to first position
     } // END OF updateRecyclerView
 
 
@@ -236,21 +255,13 @@ public class MainFragment extends Fragment{
 //        launchVolleyService(VolleyIntentService.PARAM_ACTION_VOLLEY_GET);
     }
 
+
     @Override
     public void onStop() {
         super.onStop();
 //        launchVolleyService(VolleyIntentService.PARAM_ACTION_SQLite_DELETE_LOCAL); // delete local cache
         launchFirebaseService(FirebaseIntentService.PARAM_ACTION_FIREBASE_STOP);
-//        launchFirebaseService(FirebaseIntentService.PARAM_ACTION_SQLite_DELETE_LOCAL);
     }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        launchFirebaseService(FirebaseIntentService.PARAM_ACTION_FIREBASE_STOP);
-        launchFirebaseService(FirebaseIntentService.PARAM_ACTION_SQLite_DELETE_LOCAL);
-    }
-
 
 }// END OF MainFragment()
 

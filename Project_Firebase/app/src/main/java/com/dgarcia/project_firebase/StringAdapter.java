@@ -44,6 +44,7 @@ public class StringAdapter extends RecyclerView.Adapter<StringAdapter.MyViewHold
         }
         else if(s.startsWith("<-")){
             if(s.contains("ERROR") || s.contains("Exception")) holder.mTextView.setTextColor(Color.rgb(255,0,0)); //Red
+            else if(s.contains("Connected")) holder.mTextView.setTextColor(Color.rgb(0, 255, 42)); //Green
             else holder.mTextView.setTextColor(Color.rgb(0, 229, 255)); //blue
         }
         else {

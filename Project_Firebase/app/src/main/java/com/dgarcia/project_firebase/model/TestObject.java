@@ -11,7 +11,7 @@ import java.util.Date;
 import java.util.UUID;
 
 @IgnoreExtraProperties // <-- Used for firebase
-public class TestObject{
+public class TestObject implements java.io.Serializable{ // serializable to be past as an intent
 
     private int id;
     private String Date;

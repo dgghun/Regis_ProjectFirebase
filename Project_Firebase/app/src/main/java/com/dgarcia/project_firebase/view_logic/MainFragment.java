@@ -9,7 +9,10 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.*;
 import android.support.v7.widget.DividerItemDecoration;
 import android.text.format.DateFormat;
@@ -25,6 +28,7 @@ import com.dgarcia.project_firebase.RecyclerTouchListener;
 import com.dgarcia.project_firebase.StringAdapter;
 import com.dgarcia.project_firebase.model.TestObject;
 import com.dgarcia.project_firebase.services.FirebaseIntentService;
+import com.dgarcia.project_firebase.services.TestObjectSvcSQLiteImpl;
 import com.dgarcia.project_firebase.services.VolleyIntentService;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DatabaseReference;
@@ -110,7 +114,7 @@ public class MainFragment extends Fragment{
             else if (intentStr.contains(FirebaseIntentService.NOT_CONNECTED)) {
                 hideButtons(true);
 
-                // Show progress box when not connected
+                // Show progress box when not connected -Firebase SDK ONLY
                 ConnectivityManager connectivityManager = (ConnectivityManager) view.getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
                 NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
                 if(activeNetworkInfo != null && activeNetworkInfo.isConnected())
@@ -230,7 +234,38 @@ public class MainFragment extends Fragment{
                 new RecyclerTouchListener(view.getContext(), new RecyclerTouchListener.OnItemClickListener() {
                     @Override public void onItemClick(View view, int position) {
                         String s = mStringList.get(position);
-                        Toast.makeText(view.getContext(),"Clicked " + s, Toast.LENGTH_SHORT).show();
+
+                        // Launch item info activity if clicked on a test object
+                        if(s.contains("ID:")){
+                            s = s.substring(s.indexOf("ID:") + 3, s.indexOf("DATE")).trim();    //get the id from the string
+
+                            //TODO - Testing, remove try catch when ready.
+                            try {
+                                final List<TestObject> testObjects = new TestObjectSvcSQLiteImpl(view.getContext()).retrieveAllTestObjects();
+                                Boolean found = false; // flag
+
+                                for (TestObject t : testObjects) {
+
+                                    if (t.getId() == Integer.parseInt(s)) {
+
+                                        Intent intent1 = new Intent(getActivity(), RecyclerItemInfoActivity.class);
+                                        intent1.putExtra(RecyclerItemInfoFragment.PARAM_IN_TESTOBJECT, t);
+                                        startActivity(intent1);
+
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                                if(!found) Toast.makeText(view.getContext(), "ERROR: Item not found", Toast.LENGTH_SHORT);
+                            }catch (Exception e){
+                                updateRecyclerView(e.getMessage());
+                            }
+
+
+                        }else Toast.makeText(view.getContext(), "No info for this item.", Toast.LENGTH_SHORT).show();
+
+
+
                     }
                 })
         );

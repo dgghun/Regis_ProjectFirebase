@@ -5,4 +5,5 @@
     <string name="get_button">GET</string>
     <string name="delete_button">DELETE</string>
     <string name="output_window_label">Ready&#8230;</string>
+    <string name="recycler_info_header">INFO HEADER</string>
 </resources>

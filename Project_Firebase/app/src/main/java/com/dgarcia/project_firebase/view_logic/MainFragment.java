@@ -1,6 +1,8 @@
 package com.dgarcia.project_firebase.view_logic;
 
 
+import android.annotation.TargetApi;
+import android.app.ActivityOptions;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -10,12 +12,15 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.*;
 import android.support.v7.widget.DividerItemDecoration;
 import android.text.format.DateFormat;
+import android.transition.Explode;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -223,10 +228,16 @@ public class MainFragment extends Fragment{
     private void setUpRecyclerListener(){
         //RECYCLER VIEW setup
         mRecyclerView = (RecyclerView)view.findViewById(R.id.RecyclerView_outputWindow);    //Get handle on recycler view
-        mStringAdapter = new StringAdapter(mStringList);    //add string list to custom adapter
+        mStringAdapter = new StringAdapter(mStringList, view.getContext());    //add string list to custom adapter
         mLayoutManager = new LinearLayoutManager(view.getContext()); // get new layout manager
         mRecyclerView.setLayoutManager(mLayoutManager);
-        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        RecyclerView.ItemAnimator itemAnimator = new DefaultItemAnimator();
+        itemAnimator.setAddDuration(1000);
+        itemAnimator.setRemoveDuration(1000);
+        itemAnimator.setMoveDuration(1000);
+        mRecyclerView.setItemAnimator(itemAnimator);
+//        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+
         mRecyclerView.setAdapter(mStringAdapter);
         mRecyclerView.addItemDecoration(new DividerItemDecoration(view.getContext(), DividerItemDecoration.VERTICAL));
 
@@ -240,6 +251,7 @@ public class MainFragment extends Fragment{
                             s = s.substring(s.indexOf("ID:") + 3, s.indexOf("DATE")).trim();    //get the id from the string
 
                             //TODO - Testing, remove try catch when ready.
+                            // Start next item info activity
                             try {
                                 final List<TestObject> testObjects = new TestObjectSvcSQLiteImpl(view.getContext()).retrieveAllTestObjects();
                                 Boolean found = false; // flag
@@ -251,6 +263,7 @@ public class MainFragment extends Fragment{
                                         Intent intent1 = new Intent(getActivity(), RecyclerItemInfoActivity.class);
                                         intent1.putExtra(RecyclerItemInfoFragment.PARAM_IN_TESTOBJECT, t);
                                         startActivity(intent1);
+                                        getActivity().overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out ); // fade transition
 
                                         found = true;
                                         break;
@@ -272,15 +285,20 @@ public class MainFragment extends Fragment{
     } // END OF setUpRecyclerListener()
 
 
+
     /** updateRecyclerView()
      * Simple update to Recycler view
      * @param s
      */
     private void updateRecyclerView(String s){
-        mStringList.add(0,s);   // add to first posiion in Recycle View
+        mStringList.add(0,s);   // add to first position in Recycle View
+//        mStringList.add(s);   // add to last position in Recycle View
+
         mStringAdapter.notifyDataSetChanged();
-       // mRecyclerView.smoothScrollToPosition(mStringAdapter.getItemCount() - 1);  // Scroll to last position
-        mRecyclerView.smoothScrollToPosition(0);    //Scroll to first position
+
+//        mRecyclerView.smoothScrollToPosition(mStringAdapter.getItemCount() - 1);  // Scroll to last position
+//        mRecyclerView.smoothScrollToPosition(0);    //Scroll to first position
+
     } // END OF updateRecyclerView
 
 

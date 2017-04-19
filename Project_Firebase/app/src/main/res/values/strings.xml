@@ -5,5 +5,8 @@
     <string name="get_button">GET</string>
     <string name="delete_button">DELETE</string>
     <string name="output_window_label">Ready&#8230;</string>
-    <string name="recycler_info_header">INFO HEADER</string>
+    <string name="recycler_info_header">TEST OBJECT INFO</string>
+    <string name="recycler_info_id">ID</string>
+    <string name="recycler_info_date">DATE</string>
+    <string name="recycler_info_name">NAME</string>
 </resources>

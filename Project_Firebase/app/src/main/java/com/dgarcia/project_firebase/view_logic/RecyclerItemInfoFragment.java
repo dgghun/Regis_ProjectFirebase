@@ -26,10 +26,15 @@ public class RecyclerItemInfoFragment extends Fragment{
 
         view = inflater.inflate(R.layout.fragment_recycler_item_info, container, false);
 
-        TextView mHeader = (TextView)view.findViewById(R.id.item_info_header);
+        TextView mHeaderView = (TextView)view.findViewById(R.id.item_info_header);
+        TextView mIdView = (TextView)view.findViewById(R.id.item_info_id);
+        TextView mDateView = (TextView)view.findViewById(R.id.item_info_date);
+        TextView mNameView = (TextView)view.findViewById(R.id.item_info_name);
 
         TestObject testObject = (TestObject) getActivity().getIntent().getSerializableExtra(PARAM_IN_TESTOBJECT);
-        mHeader.setText("ID: " + testObject.getId() + " DATE: " + testObject.getDate());
+
+        mIdView.setText("ID: " + testObject.getId());
+        mDateView.setText("DATE: "+ testObject.getDate());
 
         return view;
     }

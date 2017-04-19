@@ -8,9 +8,36 @@
     <TextView android:id="@+id/item_info_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:textSize="30sp"
+        android:textStyle="bold"
         android:text="@string/recycler_info_header"
         style="?android:listSeparatorTextViewStyle"
     />
+    <TextView android:id="@+id/item_info_id"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:text="@string/recycler_info_id"
+        />
+    <TextView android:id="@+id/item_info_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:text="@string/recycler_info_date"
+        />
+    <TextView android:id="@+id/item_info_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:text="@string/recycler_info_name"
+        />
 
 
 

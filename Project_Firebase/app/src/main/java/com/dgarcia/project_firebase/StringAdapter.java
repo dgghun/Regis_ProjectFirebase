@@ -1,11 +1,17 @@
 package com.dgarcia.project_firebase;
 
 
+import android.content.Context;
 import android.graphics.Color;
+import android.os.SystemClock;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.TextView;
 
 import java.util.List;
@@ -13,6 +19,8 @@ import java.util.List;
 public class StringAdapter extends RecyclerView.Adapter<StringAdapter.MyViewHolder>{
 
     private List<String> stringList;
+    private Context context;
+    private int lastPosition = -1; // for animation
 
     public class MyViewHolder extends RecyclerView.ViewHolder{
         public TextView mTextView;
@@ -23,8 +31,9 @@ public class StringAdapter extends RecyclerView.Adapter<StringAdapter.MyViewHold
         }
     }
 
-    public StringAdapter(List<String> stringList){
+    public StringAdapter(List<String> stringList, Context context){
         this.stringList = stringList;
+        this.context = context;
     }
 
     @Override
@@ -51,10 +60,14 @@ public class StringAdapter extends RecyclerView.Adapter<StringAdapter.MyViewHold
             holder.mTextView.setTextColor(Color.WHITE);
         }
         holder.mTextView.setText(s);
+        holder.itemView.animate();
     }
 
     @Override
     public int getItemCount(){
         return stringList.size();
     }
+
+
+
 }

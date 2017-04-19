@@ -6,6 +6,12 @@
 
     </style>
 
+    <style name="TextView_itemInfo" parent="android:Theme.Holo">
+        <item name="android:textSize">22sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:layout_margin">16dp</item>
+    </style>
+
 
 
 </resources>

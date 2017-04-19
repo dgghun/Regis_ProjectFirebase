@@ -36,7 +36,6 @@
 
         <activity
             android:name=".view_logic.RecyclerItemInfoActivity"
-            android:parentActivityName=".view_logic.MainActivity"
             >
         </activity>
 

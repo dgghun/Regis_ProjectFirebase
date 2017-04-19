@@ -231,54 +231,35 @@ public class MainFragment extends Fragment{
         mStringAdapter = new StringAdapter(mStringList, view.getContext());    //add string list to custom adapter
         mLayoutManager = new LinearLayoutManager(view.getContext()); // get new layout manager
         mRecyclerView.setLayoutManager(mLayoutManager);
-        RecyclerView.ItemAnimator itemAnimator = new DefaultItemAnimator();
-        itemAnimator.setAddDuration(1000);
-        itemAnimator.setRemoveDuration(1000);
-        itemAnimator.setMoveDuration(1000);
-        mRecyclerView.setItemAnimator(itemAnimator);
-//        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
 
         mRecyclerView.setAdapter(mStringAdapter);
         mRecyclerView.addItemDecoration(new DividerItemDecoration(view.getContext(), DividerItemDecoration.VERTICAL));
 
-        mRecyclerView.addOnItemTouchListener(
-                new RecyclerTouchListener(view.getContext(), new RecyclerTouchListener.OnItemClickListener() {
+        mRecyclerView.addOnItemTouchListener(new RecyclerTouchListener(view.getContext(), new RecyclerTouchListener.OnItemClickListener() {
                     @Override public void onItemClick(View view, int position) {
-                        String s = mStringList.get(position);
+                        String s = mStringList.get(position);   // String of item clicked on
 
-                        // Launch item info activity if clicked on a test object
-                        if(s.contains("ID:")){
+                        if(s.contains("ID:")){  //If the item clicked on is a test object
                             s = s.substring(s.indexOf("ID:") + 3, s.indexOf("DATE")).trim();    //get the id from the string
+                            List<TestObject> tObjs = new TestObjectSvcSQLiteImpl(view.getContext()).retrieveAllTestObjects(); //get cached testObjects
 
-                            //TODO - Testing, remove try catch when ready.
-                            // Start next item info activity
-                            try {
-                                final List<TestObject> testObjects = new TestObjectSvcSQLiteImpl(view.getContext()).retrieveAllTestObjects();
-                                Boolean found = false; // flag
+                            if(tObjs.size() > 0) {  // if testObjects in list, search for id of the one clicked on.
 
-                                for (TestObject t : testObjects) {
-
-                                    if (t.getId() == Integer.parseInt(s)) {
-
+                                for (TestObject t : tObjs) {
+                                    if (t.getId() == Integer.parseInt(s)) { //if id of clicked on is found, start item_info activity
                                         Intent intent1 = new Intent(getActivity(), RecyclerItemInfoActivity.class);
                                         intent1.putExtra(RecyclerItemInfoFragment.PARAM_IN_TESTOBJECT, t);
                                         startActivity(intent1);
-                                        getActivity().overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out ); // fade transition
-
-                                        found = true;
+                                        getActivity().overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out); // Fade transition
                                         break;
                                     }
+
                                 }
-                                if(!found) Toast.makeText(view.getContext(), "ERROR: Item not found", Toast.LENGTH_SHORT);
-                            }catch (Exception e){
-                                updateRecyclerView(e.getMessage());
-                            }
-
-
-                        }else Toast.makeText(view.getContext(), "No info for this item.", Toast.LENGTH_SHORT).show();
-
-
-
+                            }else // If list is empty no testObjects
+                                Toast.makeText(view.getContext(), "No Test Objects available. Cache empty.", Toast.LENGTH_SHORT).show();
+                        }else // If item clicked on isnt a testObject
+                            Toast.makeText(view.getContext(), "No info for this item.", Toast.LENGTH_SHORT).show();
                     }
                 })
         );

@@ -1,12 +1,13 @@
 <resources>
-    <string name="app_name">DGarcia - Project Firebase</string>
-    <string name="main_title_label">Post objects to Firebase</string>
-    <string name="post_button">POST</string>
-    <string name="get_button">GET</string>
-    <string name="delete_button">DELETE</string>
-    <string name="output_window_label">Ready&#8230;</string>
-    <string name="recycler_info_header">TEST OBJECT INFO</string>
-    <string name="recycler_info_id">ID:</string>
-    <string name="recycler_info_date">DATE:</string>
-    <string name="recycler_info_name">NAME:</string>
+    <string name="str_app_name">DGarcia - Project Firebase</string>
+    <string name="str_main_edit_text_label">ENTER YOUR NAME HERE</string>
+    <string name="str_post_button">POST</string>
+    <string name="str_get_button">GET</string>
+    <string name="str_delete_button">DELETE</string>
+    <string name="str_output_window_label">Ready&#8230;</string>
+    <string name="str_recycler_info_header">TEST OBJECT INFO</string>
+    <string name="str_recycler_info_id">ID:</string>
+    <string name="str_recycler_info_date">DATE:</string>
+    <string name="str_recycler_info_name">NAME:</string>
+    <string name="str_name_error">NAME ERROR</string>
 </resources>

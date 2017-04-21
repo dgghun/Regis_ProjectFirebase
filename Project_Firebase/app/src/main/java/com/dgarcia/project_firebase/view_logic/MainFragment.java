@@ -1,8 +1,6 @@
 package com.dgarcia.project_firebase.view_logic;
 
 
-import android.annotation.TargetApi;
-import android.app.ActivityOptions;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -11,21 +9,15 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.os.SystemClock;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.*;
 import android.support.v7.widget.DividerItemDecoration;
 import android.text.format.DateFormat;
-import android.transition.Explode;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.dgarcia.project_firebase.R;
@@ -48,6 +40,7 @@ public class MainFragment extends Fragment{
     private Button mGetButton;
     private Button mDeleteButton;
     private TestObject testObject;
+    private EditText mName;
     private View view;
 
     //Firebase API variables
@@ -91,6 +84,7 @@ public class MainFragment extends Fragment{
 
         setUpRecyclerListener();    // Method that sets up the Recycler Listener
         setUpButtons();             // Method that sets up button listeners
+        setUpEditTextListener();    // Listenes for Name input
 
         launchFirebaseService(FirebaseIntentService.PARAM_ACTION_FIREBASE_START); // Start Firebase
 
@@ -180,6 +174,15 @@ public class MainFragment extends Fragment{
     }//END OF hideButtons()
 
 
+    /** setupEditTextListener()
+     *
+     */
+    public void setUpEditTextListener() {
+        mName = (EditText)view.findViewById(R.id.editTxt_enter_your_name);
+
+    }
+
+
     /** setUpButtons()
      * Sets up buttons and listeners
      */
@@ -251,7 +254,7 @@ public class MainFragment extends Fragment{
                                         Intent intent1 = new Intent(getActivity(), RecyclerItemInfoActivity.class);
                                         intent1.putExtra(RecyclerItemInfoFragment.PARAM_IN_TESTOBJECT, t);
                                         startActivity(intent1);
-                                        getActivity().overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out); // Fade transition
+                                        getActivity().overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right); // Fade transition
                                         break;
                                     }
 

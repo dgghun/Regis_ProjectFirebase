@@ -6,11 +6,30 @@
     android:orientation="vertical"
     android:animateLayoutChanges="true"
     >
-    <TextView
+
+    <EditText android:id="@+id/editTxt_enter_your_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/main_title_label"
-        style="?android:listSeparatorTextViewStyle"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="4dp"
+        android:layout_marginTop="4dp"
+        android:textColor="@android:color/holo_orange_light"
+        android:textSize="20sp"
+        android:hint="@string/str_main_edit_text_label"
+        />
+    <TextView android:id="@+id/textView_error_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="4dp"
+
+        android:textAlignment="gravity"
+        android:text="@string/str_name_error"
+        android:textColor="@android:color/holo_red_dark"
+        android:textAllCaps="true"
+        android:textStyle="bold"
         />
 
     <LinearLayout
@@ -28,7 +47,7 @@
             android:layout_marginTop="4dp"
             android:layout_marginBottom="4dp"
             android:backgroundTint="@android:color/holo_blue_bright"
-            android:text="@string/post_button"
+            android:text="@string/str_post_button"
             android:layout_weight="1"
             />
         <Button
@@ -41,7 +60,7 @@
             android:layout_marginBottom="4dp"
             android:backgroundTint="@android:color/holo_blue_bright"
             android:layout_toRightOf="@id/button_POST"
-            android:text="@string/get_button"
+            android:text="@string/str_get_button"
             android:layout_weight="1"
             />
         <Button
@@ -53,7 +72,7 @@
             android:layout_marginTop="4dp"
             android:layout_marginBottom="4dp"
             android:backgroundTint="@android:color/holo_blue_bright"
-            android:text="@string/delete_button"
+            android:text="@string/str_delete_button"
             android:layout_weight="1"
             />
     </LinearLayout>

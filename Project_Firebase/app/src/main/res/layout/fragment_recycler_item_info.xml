@@ -13,7 +13,7 @@
         android:textSize="30sp"
         android:textStyle="bold"
         android:gravity="center"
-        android:text="@string/recycler_info_header"
+        android:text="@string/str_recycler_info_header"
         android:textColor="@android:color/holo_orange_dark"
         android:background="@android:drawable/dialog_holo_light_frame"
         style="?android:listSeparatorTextViewStyle"
@@ -21,19 +21,19 @@
     <TextView android:id="@+id/item_info_id"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/recycler_info_id"
+        android:text="@string/str_recycler_info_id"
         style="@style/TextView_itemInfo"
         />
     <TextView android:id="@+id/item_info_date"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/recycler_info_date"
+        android:text="@string/str_recycler_info_date"
         style="@style/TextView_itemInfo"
         />
     <TextView android:id="@+id/item_info_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/recycler_info_name"
+        android:text="@string/str_recycler_info_name"
         style="@style/TextView_itemInfo"
         />
 

@@ -1,29 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- focusableInTouchMode used to start app with EditText not in focus-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:animateLayoutChanges="true"
+    android:focusableInTouchMode="true"
     >
 
-    <EditText android:id="@+id/editTxt_enter_your_name"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginBottom="4dp"
-        android:layout_marginTop="4dp"
-        android:textColor="@android:color/holo_orange_light"
-        android:textSize="20sp"
-        android:hint="@string/str_main_edit_text_label"
-        />
+        android:orientation="horizontal"
+        >
+        <EditText android:id="@+id/editTxt_enter_your_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginTop="8dp"
+            android:textColor="@android:color/holo_orange_light"
+            android:hint="@string/str_main_edit_text_label"
+            android:layout_weight="1"
+            android:inputType="textCapCharacters"
+            android:maxLength="10"
+            />
+        <Button android:id="@+id/button_DONE"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="@color/green"
+            android:text="@string/str_done_button"
+            android:layout_weight="0"
+            />
+    </LinearLayout>
+
     <TextView android:id="@+id/textView_error_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
-        android:layout_marginBottom="4dp"
+
 
         android:textAlignment="gravity"
         android:text="@string/str_name_error"

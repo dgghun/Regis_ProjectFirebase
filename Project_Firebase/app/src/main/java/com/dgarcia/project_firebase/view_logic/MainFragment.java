@@ -1,6 +1,7 @@
 package com.dgarcia.project_firebase.view_logic;
 
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -12,12 +13,18 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.*;
 import android.support.v7.widget.DividerItemDecoration;
+import android.text.Editable;
+import android.text.InputFilter;
+import android.text.TextWatcher;
 import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.dgarcia.project_firebase.R;
@@ -39,8 +46,10 @@ public class MainFragment extends Fragment{
     private Button mPostButton;
     private Button mGetButton;
     private Button mDeleteButton;
+    private Button mDoneButton;
     private TestObject testObject;
-    private EditText mName;
+    private EditText mNameEditText;
+    private TextView mErrorLabel;
     private View view;
 
     //Firebase API variables
@@ -84,9 +93,10 @@ public class MainFragment extends Fragment{
 
         setUpRecyclerListener();    // Method that sets up the Recycler Listener
         setUpButtons();             // Method that sets up button listeners
+//        launchFirebaseService(FirebaseIntentService.PARAM_ACTION_FIREBASE_START); // Start Firebase
         setUpEditTextListener();    // Listenes for Name input
 
-        launchFirebaseService(FirebaseIntentService.PARAM_ACTION_FIREBASE_START); // Start Firebase
+
 
         return view;
     } // END OF onCreate()
@@ -174,13 +184,90 @@ public class MainFragment extends Fragment{
     }//END OF hideButtons()
 
 
+    /** hideKeyboard()
+     *
+     */
+    public void hideKeyboard(){
+        InputMethodManager imm = (InputMethodManager) view.getContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
+        imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
+    }
+
+
     /** setupEditTextListener()
      *
      */
     public void setUpEditTextListener() {
-        mName = (EditText)view.findViewById(R.id.editTxt_enter_your_name);
+        mDoneButton = (Button) view.findViewById(R.id.button_DONE);
+        mNameEditText = (EditText)view.findViewById(R.id.editTxt_enter_your_name);
+        mErrorLabel = (TextView)view.findViewById(R.id.textView_error_name);
+        final String noName = "No name entered.";
+        final String need3Letters = "Name must be at least 3 characters.";
+        final String noSpaces = "no spaces allowed.";
+
+        mDoneButton.setVisibility(View.INVISIBLE);
+        hideButtons(true);
+
+        // Used to monitor input of name
+        final TextWatcher textWatcher = new TextWatcher() {
+            @Override// Before text is changed
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { // executes every time a character is added/removed
+                String str = s.toString();
+                if(str.length() > 0 &&  str.contains(" ")){
+                    mErrorLabel.setText(noSpaces);
+                    mErrorLabel.setVisibility(View.VISIBLE);
+                    mDoneButton.setVisibility(View.INVISIBLE);
+                } else if(str.length() == 0) {
+                    mErrorLabel.setText(noName);
+                    mErrorLabel.setVisibility(View.VISIBLE);
+                    mDoneButton.setVisibility(View.INVISIBLE);
+                }else if(str.length() >= 1 && str.length() <= 2) {
+                    mErrorLabel.setText(need3Letters);
+                    mErrorLabel.setVisibility(View.VISIBLE);
+                    mDoneButton.setVisibility(View.INVISIBLE);
+                }else if(str.length() >= 3){
+                    mErrorLabel.setVisibility(View.INVISIBLE);
+                    mDoneButton.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override // when focus is leaves edit text AND there is a change
+            public void afterTextChanged(Editable s) {}
+        };
+
+
+        mNameEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+
+                if(hasFocus){
+                    mNameEditText.addTextChangedListener(textWatcher);
+                }else{
+                    mNameEditText.removeTextChangedListener(textWatcher);
+                }
+            }
+        });
+
+        mDoneButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                hideKeyboard();
+                String s = "Playing as " + mNameEditText.getText().toString();
+                mNameEditText.setFilters(new InputFilter[]{ new InputFilter.LengthFilter(s.length())});
+                mNameEditText.setText(s);
+                mNameEditText.setFocusable(false);
+                mDoneButton.setVisibility(View.INVISIBLE);
+                mErrorLabel.setVisibility(View.INVISIBLE);
+
+                launchFirebaseService(FirebaseIntentService.PARAM_ACTION_FIREBASE_START); // Start Firebase
+                hideButtons(false);
+                updateRecyclerView("   Ready...");
+            }
+        });
 
     }
+
 
 
     /** setUpButtons()

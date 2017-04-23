@@ -30,12 +30,7 @@
         android:text="@string/str_recycler_info_date"
         style="@style/TextView_itemInfo"
         />
-    <TextView android:id="@+id/item_info_name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/str_recycler_info_name"
-        style="@style/TextView_itemInfo"
-        />
+
 
 
 

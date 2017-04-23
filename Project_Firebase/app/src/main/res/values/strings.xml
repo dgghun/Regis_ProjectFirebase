@@ -8,7 +8,6 @@
     <string name="str_recycler_info_header">TEST OBJECT INFO</string>
     <string name="str_recycler_info_id">ID:</string>
     <string name="str_recycler_info_date">DATE:</string>
-    <string name="str_recycler_info_name">NAME:</string>
     <string name="str_name_error">NO NAME ENTERED</string>
     <string name="str_done_button">DONE</string>
 </resources>

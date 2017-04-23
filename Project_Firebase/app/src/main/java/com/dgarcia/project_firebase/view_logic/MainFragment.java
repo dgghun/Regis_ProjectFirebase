@@ -52,13 +52,6 @@ public class MainFragment extends Fragment{
     private TextView mErrorLabel;
     private View view;
 
-    //Firebase API variables
-    private DatabaseReference fireBaseRef;
-    private DatabaseReference connectedRef;
-    private ValueEventListener mConnectedListener;
-    private ValueEventListener mPostListener;
-    private ChildEventListener mChildListener;
-
     //Recycler View variables
     private List<String> mStringList = new ArrayList<>();
     private RecyclerView mRecyclerView;
@@ -71,9 +64,6 @@ public class MainFragment extends Fragment{
     //Broadcast Receiver variable
     private MyBroadcastReceiver receiver;
 
-    //Date format variables
-    final String dfString = "MM/dd/yy  hh:mm:ss a";  // date format string
-    final android.text.format.DateFormat dateFormat = new DateFormat();
 
     @Override
     public void onCreate(Bundle savedInstance){
@@ -93,8 +83,7 @@ public class MainFragment extends Fragment{
 
         setUpRecyclerListener();    // Method that sets up the Recycler Listener
         setUpButtons();             // Method that sets up button listeners
-//        launchFirebaseService(FirebaseIntentService.PARAM_ACTION_FIREBASE_START); // Start Firebase
-        setUpEditTextListener();    // Listenes for Name input
+        setUpEditTextListener();    // Listeners for Name input. App start up.
 
 
 
@@ -167,7 +156,7 @@ public class MainFragment extends Fragment{
 
 
     /** hideButtons()
-     * Sets button visibility
+     * Sets button visibility for GET, POST & DELETE
      * @param hide
      */
     private void hideButtons(Boolean hide){
@@ -185,58 +174,64 @@ public class MainFragment extends Fragment{
 
 
     /** hideKeyboard()
-     *
+     *  Hides soft keyboard
      */
     public void hideKeyboard(){
         InputMethodManager imm = (InputMethodManager) view.getContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
         imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
-    }
+    } // END OF hideKeyboard()
 
 
     /** setupEditTextListener()
      *
      */
     public void setUpEditTextListener() {
-        mDoneButton = (Button) view.findViewById(R.id.button_DONE);
+        mDoneButton = (Button) view.findViewById(R.id.button_DONE);                 // Clicked when user enters name
         mNameEditText = (EditText)view.findViewById(R.id.editTxt_enter_your_name);
-        mErrorLabel = (TextView)view.findViewById(R.id.textView_error_name);
-        final String noName = "No name entered.";
-        final String need3Letters = "Name must be at least 3 characters.";
-        final String noSpaces = "no spaces allowed.";
+        mErrorLabel = (TextView)view.findViewById(R.id.textView_error_name);        // Error label
+        final String noNameErr = "No name entered.";
+        final String need3LettersErr = "Name must be at least 3 characters.";
+        final String noSpacesErr = "no spaces allowed.";
 
         mDoneButton.setVisibility(View.INVISIBLE);
-        hideButtons(true);
+        hideButtons(true);  // Hide all database button actions until user enters name
 
         // Used to monitor input of name
         final TextWatcher textWatcher = new TextWatcher() {
-            @Override// Before text is changed
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override// Before text is changed.
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // do stuff
+            }
+
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) { // executes every time a character is added/removed
                 String str = s.toString();
-                if(str.length() > 0 &&  str.contains(" ")){
-                    mErrorLabel.setText(noSpaces);
+
+                if(str.length() > 0 &&  str.contains(" ")){         // no spaces allowed error. Just looking for a first name.
+                    mErrorLabel.setText(noSpacesErr);
                     mErrorLabel.setVisibility(View.VISIBLE);
                     mDoneButton.setVisibility(View.INVISIBLE);
-                } else if(str.length() == 0) {
-                    mErrorLabel.setText(noName);
+                } else if(str.length() == 0) {                      // no name entered error.
+                    mErrorLabel.setText(noNameErr);
                     mErrorLabel.setVisibility(View.VISIBLE);
                     mDoneButton.setVisibility(View.INVISIBLE);
-                }else if(str.length() >= 1 && str.length() <= 2) {
-                    mErrorLabel.setText(need3Letters);
+                }else if(str.length() >= 1 && str.length() <= 2) {  // at least 3 characters error. Name must be at least 3 chars long.
+                    mErrorLabel.setText(need3LettersErr);
                     mErrorLabel.setVisibility(View.VISIBLE);
                     mDoneButton.setVisibility(View.INVISIBLE);
-                }else if(str.length() >= 3){
+                }else if(str.length() >= 3){                        // name is good. Show DONE button.
                     mErrorLabel.setVisibility(View.INVISIBLE);
                     mDoneButton.setVisibility(View.VISIBLE);
                 }
             }
 
             @Override // when focus is leaves edit text AND there is a change
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+                // do stuff
+            }
         };
 
-
+        // If the name EditText has focus start text listener.
         mNameEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -249,14 +244,15 @@ public class MainFragment extends Fragment{
             }
         });
 
+        // If DONE button clicked hide DONE button, show database action buttons, and start Firebase
         mDoneButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 hideKeyboard();
                 String s = "Playing as " + mNameEditText.getText().toString();
-                mNameEditText.setFilters(new InputFilter[]{ new InputFilter.LengthFilter(s.length())});
+                mNameEditText.setFilters(new InputFilter[]{ new InputFilter.LengthFilter(s.length())}); // changes the Max length of the EditText to "s" length.
                 mNameEditText.setText(s);
-                mNameEditText.setFocusable(false);
+                mNameEditText.setFocusable(false);          // Dont allow anymore name changes
                 mDoneButton.setVisibility(View.INVISIBLE);
                 mErrorLabel.setVisibility(View.INVISIBLE);
 
@@ -266,7 +262,7 @@ public class MainFragment extends Fragment{
             }
         });
 
-    }
+    } // END OF setUpEditTextListener()
 
 
 
@@ -313,7 +309,7 @@ public class MainFragment extends Fragment{
 
 
     /** setUpRecyclerListener()
-     * Sets up and starts Recycler Listener
+     * Sets up and starts Recycler Listener. If testObject is clicked show item info in new activity.
      */
     private void setUpRecyclerListener(){
         //RECYCLER VIEW setup

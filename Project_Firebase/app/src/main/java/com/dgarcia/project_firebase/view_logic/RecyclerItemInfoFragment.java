@@ -29,7 +29,6 @@ public class RecyclerItemInfoFragment extends Fragment{
         TextView mHeaderView = (TextView)view.findViewById(R.id.item_info_header);
         TextView mIdView = (TextView)view.findViewById(R.id.item_info_id);
         TextView mDateView = (TextView)view.findViewById(R.id.item_info_date);
-        TextView mNameView = (TextView)view.findViewById(R.id.item_info_name);
 
         TestObject testObject = (TestObject) getActivity().getIntent().getSerializableExtra(PARAM_IN_TESTOBJECT);
 

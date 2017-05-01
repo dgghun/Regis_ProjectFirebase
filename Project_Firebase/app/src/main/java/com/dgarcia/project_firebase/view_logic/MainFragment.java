@@ -27,6 +27,9 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
+import io.fabric.sdk.android.Fabric;
+
 import com.dgarcia.project_firebase.R;
 import com.dgarcia.project_firebase.RecyclerTouchListener;
 import com.dgarcia.project_firebase.StringAdapter;
@@ -75,6 +78,9 @@ public class MainFragment extends Fragment{
 
         view = inflater.inflate(R.layout.fragment_main, container, false);
 
+        Fabric.with(view.getContext(), new Crashlytics()); // For crashlytics.
+
+
         //Register broadcast receiver
         IntentFilter intentFilter = new IntentFilter(MyBroadcastReceiver.ACTION_RESPONSE);
         intentFilter.addCategory(Intent.CATEGORY_DEFAULT);
@@ -89,6 +95,8 @@ public class MainFragment extends Fragment{
 
         return view;
     } // END OF onCreate()
+
+
 
 
     /**
@@ -266,6 +274,15 @@ public class MainFragment extends Fragment{
 
 
 
+    /** forshCrash()
+     *  Crash handler for Crashlytics
+     * @param view
+     */
+    public void forceCrash(View view) {
+        throw new RuntimeException("This is a crash");
+    }
+
+
     /** setUpButtons()
      * Sets up buttons and listeners
      */
@@ -279,6 +296,9 @@ public class MainFragment extends Fragment{
                 updateRecyclerView("-> Posting...");
 //                launchVolleyService(VolleyIntentService.PARAM_ACTION_VOLLEY_POST);
                 launchFirebaseService(FirebaseIntentService.PARAM_ACTION_FIRESBASE_POST);
+
+                forceCrash(view);
+
             }// END OF onClick()
         }); // END OF setonClickListener()
 

@@ -297,7 +297,7 @@ public class MainFragment extends Fragment{
 //                launchVolleyService(VolleyIntentService.PARAM_ACTION_VOLLEY_POST);
                 launchFirebaseService(FirebaseIntentService.PARAM_ACTION_FIRESBASE_POST);
 
-                forceCrash(view);
+                //forceCrash(view); // Forces crash and sends report to Crashlytics console
 
             }// END OF onClick()
         }); // END OF setonClickListener()

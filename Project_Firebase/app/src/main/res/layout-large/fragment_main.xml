@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- focusableInTouchMode used to start app with EditText not in focus-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:animateLayoutChanges="true"
+    android:focusableInTouchMode="true"
+    >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        >
+        <EditText android:id="@+id/editTxt_enter_your_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginTop="8dp"
+            android:textColor="@android:color/holo_orange_light"
+            android:hint="@string/str_main_edit_text_label"
+            android:layout_weight="1"
+            android:inputType="textCapCharacters"
+            android:maxLength="10"
+            />
+        <Button android:id="@+id/button_DONE"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="@color/green"
+            android:text="@string/str_done_button"
+            android:layout_weight="0"
+            />
+    </LinearLayout>
+
+    <TextView android:id="@+id/textView_error_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+
+
+        android:textAlignment="gravity"
+        android:text="@string/str_name_error"
+        android:textColor="@android:color/holo_red_dark"
+        android:textAllCaps="true"
+        android:textStyle="bold"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        >
+
+        <Button
+            android:id="@+id/button_POST"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="4dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
+            android:backgroundTint="@android:color/holo_blue_bright"
+            android:text="@string/str_post_button"
+            android:layout_weight="1"
+            />
+        <Button
+            android:id="@+id/button_GET"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
+            android:backgroundTint="@android:color/holo_blue_bright"
+            android:layout_toRightOf="@id/button_POST"
+            android:text="@string/str_get_button"
+            android:layout_weight="1"
+            />
+        <Button
+            android:id="@+id/button_DELETE"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
+            android:backgroundTint="@android:color/holo_blue_bright"
+            android:text="@string/str_delete_button"
+            android:layout_weight="1"
+            />
+    </LinearLayout>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/RecyclerView_outputWindow"
+        android:scrollbars="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="16dp"
+        android:layout_weight="1"
+        />
+    <TextView android:id="@+id/TextView_largeScreen"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/str_screen_large"
+        android:textAlignment="center"
+        android:textSize="50sp"
+        android:layout_margin="16dp"
+        />
+</LinearLayout>
+
+<!--
+<TextView android:id="@+id/TV_post_output_window"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:layout_margin="16dp"
+android:background="@android:color/background_light"
+android:hint="@string/output_window_label"
+android:maxLines="100"
+android:scrollbars="vertical"
+    />-->

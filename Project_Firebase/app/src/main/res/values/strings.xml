@@ -10,4 +10,5 @@
     <string name="str_recycler_info_date">DATE:</string>
     <string name="str_name_error">NO NAME ENTERED</string>
     <string name="str_done_button">DONE</string>
+    <string name="str_screen_large">Im a LARGE screen.</string>
 </resources>
